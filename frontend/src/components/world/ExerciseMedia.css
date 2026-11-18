@@ -1,0 +1,137 @@
+.exercise-media {
+    --media-accent: var(--moss-500);
+    --media-ink: var(--moss-700);
+    --media-soft: var(--moss-100);
+    --media-sky: #f4f8f0;
+    margin: 0;
+}
+
+.exercise-media--dusk {
+    --media-accent: var(--dusk-500);
+    --media-ink: var(--dusk-700);
+    --media-soft: var(--dusk-100);
+    --media-sky: #f5f4fa;
+}
+
+.exercise-media--honey {
+    --media-accent: var(--honey-500);
+    --media-ink: var(--honey-700);
+    --media-soft: var(--honey-100);
+    --media-sky: #fdf8ee;
+}
+
+.exercise-media--sky {
+    --media-accent: var(--sky-500);
+    --media-ink: var(--sky-700);
+    --media-soft: var(--sky-100);
+    --media-sky: #eef6f7;
+}
+
+.exercise-media__scene {
+    position: relative;
+    display: grid;
+    place-items: center;
+    isolation: isolate;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--cream-300);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg,
+            color-mix(in srgb, var(--media-sky) 70%, #ffffff) 0%,
+            color-mix(in srgb, var(--media-sky) 40%, #ffffff) 46%,
+            var(--media-soft) 100%);
+}
+
+.exercise-media--banner .exercise-media__scene {
+    aspect-ratio: 2 / 1;
+}
+
+.exercise-media--avatar .exercise-media__scene {
+    aspect-ratio: 1 / 1;
+    border-radius: 999px;
+}
+
+.exercise-media__sky {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% -10%,
+            rgb(255 255 255 / 62%),
+            transparent 60%);
+}
+
+.exercise-media__glow {
+    position: absolute;
+    top: 15%;
+    inset-inline-end: 13%;
+    width: 19%;
+    aspect-ratio: 1 / 1;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--media-accent) 34%, #fffdf8);
+    box-shadow: 0 0 0 9px color-mix(in srgb, var(--media-accent) 13%, transparent);
+}
+
+.exercise-media__hill {
+    position: absolute;
+    bottom: -24%;
+    inset-inline-start: -4%;
+    width: 72%;
+    aspect-ratio: 2 / 1;
+    border-radius: 50% 50% 0 0;
+    background: color-mix(in srgb, var(--media-soft) 46%, var(--media-accent) 54%);
+    opacity: 0.55;
+}
+
+.exercise-media__ground {
+    position: absolute;
+    bottom: -30%;
+    inset-inline-end: -6%;
+    width: 86%;
+    aspect-ratio: 2 / 1;
+    border-radius: 50% 50% 0 0;
+    background: color-mix(in srgb, var(--media-soft) 58%, #ffffff);
+}
+
+.exercise-media__icon {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 34%;
+    max-width: 6.75rem;
+    aspect-ratio: 1 / 1;
+    border: 1px solid color-mix(in srgb, var(--media-accent) 38%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--media-soft) 52%, #ffffff);
+    box-shadow:
+        0 1px 0 rgb(255 255 255 / 90%) inset,
+        0 16px 30px -20px color-mix(in srgb, var(--media-ink) 70%, transparent);
+    color: var(--media-ink);
+}
+
+.exercise-media__icon svg {
+    width: 48%;
+    height: 48%;
+}
+
+.exercise-media__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.exercise-media--avatar .exercise-media__hill,
+.exercise-media--avatar .exercise-media__ground {
+    display: none;
+}
+
+@media (max-width: 620px) {
+    .exercise-media--banner .exercise-media__scene {
+        aspect-ratio: 16 / 9;
+    }
+
+    .exercise-media__icon {
+        max-width: 5.25rem;
+    }
+}

@@ -1,0 +1,674 @@
+{
+    "schema_version": "1.0.0",
+    "catalog_version": "1.0.0",
+    "domain": "sleep",
+    "reviewed_at": "2026-11-14",
+    "reviewed_by": "Habit-RPG content team",
+    "review_status": "internal_review",
+    "expires_at": "2027-11-14",
+    "evidence": [
+        {
+            "id": "aasm-cbti-2021",
+            "source": "AASM behavioural treatment of insomnia (CBT-I)",
+            "year": 2021,
+            "claim": "A consistent wake time, stimulus control and wind-down routines are core behavioural anchors."
+        },
+        {
+            "id": "cdc-sleep",
+            "source": "CDC Sleep and Sleep Disorders",
+            "year": 2022,
+            "claim": "Regular sleep habits and a restful environment support sleep health."
+        },
+        {
+            "id": "aasm-sleep-hygiene",
+            "source": "AASM sleep hygiene guidance",
+            "year": 2021,
+            "claim": "A dark, quiet, cool room and limited late caffeine support sleep."
+        }
+    ],
+    "boundaries": {
+        "not_for": [
+            "Diagnosing or treating insomnia, sleep apnoea or another sleep disorder.",
+            "Replacing clinician-led cognitive behavioural therapy for insomnia."
+        ],
+        "seek_help_if": [
+            "Loud snoring, gasping or pauses in breathing during sleep.",
+            "Severe daytime sleepiness, or falling asleep while driving or working.",
+            "Insomnia that persists for several weeks or significantly affects daily life."
+        ],
+        "population_exclusions": [
+            "Night-shift and rotating-shift workers may need personalised sleep timing advice.",
+            "Follow clinical advice for sleep problems during pregnancy or with a chronic illness."
+        ]
+    },
+    "safety_rules": {
+        "screening": [
+            "Ask about loud snoring, gasping, breathing pauses or severe daytime sleepiness.",
+            "Ask whether sleep problems have lasted several weeks or affect safety during the day."
+        ],
+        "signals": [
+            {
+                "code": "concerning_symptom",
+                "label": "Concerning sleep symptom",
+                "guidance": "Pause the sleep step and encourage a clinical review for breathing pauses, severe sleepiness or persistent insomnia."
+            },
+            {
+                "code": "distress",
+                "label": "Night-time distress",
+                "guidance": "Keep the step optional and encourage support from a qualified professional if worry or low mood is overwhelming."
+            }
+        ]
+    },
+    "habits": [
+        {
+            "habit_id": "sleep-wake-time",
+            "domain": "sleep",
+            "title": "Keep one wake-up time",
+            "description": "Choose a realistic wake-up time and keep it within about half an hour today.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 2
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 3
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 7
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "physical_opportunity",
+                "reflective_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "1.4",
+                    "implementation": "Help the user choose a realistic wake-up time and plan the morning around it.",
+                    "delivery_method": "interactive_planning"
+                },
+                {
+                    "bct_id": "7.1",
+                    "implementation": "Offer an optional reminder at the chosen wake-up time.",
+                    "delivery_method": "optional_notification"
+                },
+                {
+                    "bct_id": "8.3",
+                    "implementation": "Encourage repeating the same wake time so it becomes a habit.",
+                    "delivery_method": "habit_formation"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Keep the wake time realistic rather than rigid.",
+                "Allow a gentler version after a poor night.",
+                "Do not present a fixed wake time as treatment for insomnia or sleep apnoea."
+            ],
+            "clinical_basis": "AASM CBT-I guidance treats a consistent wake time as a core circadian anchor, and CDC sleep guidance links regular sleep habits with better health. Keeping one wake time is a behavioural anchor, not a cure. (AASM 2021; CDC Sleep and Sleep Disorders)",
+            "limits": "General wellbeing support, not treatment for insomnia or sleep apnoea. If sleep problems persist or you snore heavily, gasp, or feel very sleepy by day, speak with a clinician.",
+            "active": true
+        },
+        {
+            "habit_id": "sleep-wind-down",
+            "domain": "sleep",
+            "title": "A ten-minute wind-down",
+            "description": "Dim the lights and step away from screens for ten minutes before bed.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 10
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 12
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 15
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 20
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "physical_opportunity",
+                "automatic_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "8.3",
+                    "implementation": "Encourage a repeated wind-down routine at the same time each evening.",
+                    "delivery_method": "habit_formation"
+                },
+                {
+                    "bct_id": "12.1",
+                    "implementation": "Suggest dimming lights and moving screens away before bed.",
+                    "delivery_method": "environmental_restructuring"
+                },
+                {
+                    "bct_id": "7.1",
+                    "implementation": "Offer an optional cue before the wind-down begins.",
+                    "delivery_method": "optional_notification"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Start with three minutes if ten feels like too much.",
+                "Keep the routine calming rather than demanding.",
+                "Do not use the routine to delay needed medical or mental health care."
+            ],
+            "clinical_basis": "AASM CBT-I includes stimulus control and a consistent pre-sleep routine. A short, screen-free wind-down helps cue the body for sleep, and CDC sleep guidance supports regular evening habits. (AASM 2021; CDC)",
+            "limits": "General wellbeing support, not treatment for insomnia. If winding down does not help over weeks, or sleepiness affects safety, seek clinical advice.",
+            "active": true
+        },
+        {
+            "habit_id": "sleep-worry-dump",
+            "domain": "sleep",
+            "title": "Park tomorrow's worries",
+            "description": "Write down up to three things on your mind, then set the note aside until morning.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 3
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 7
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 10
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "psychological_capability",
+                "reflective_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "1.2",
+                    "implementation": "Guide the user to write down worries and a small next step for each.",
+                    "delivery_method": "problem_solving"
+                },
+                {
+                    "bct_id": "11.2",
+                    "implementation": "Offer a short calming pause after parking the worries.",
+                    "delivery_method": "stress_management"
+                },
+                {
+                    "bct_id": "2.3",
+                    "implementation": "Encourage noticing whether the note made bedtime feel lighter.",
+                    "delivery_method": "self_monitoring"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Keep the reflection brief and non-judgemental.",
+                "Offer a spoken alternative for anyone who cannot write.",
+                "Signpost professional support if worries feel unmanageable."
+            ],
+            "clinical_basis": "AASM CBT-I uses cognitive techniques such as constructive worry and thought records to reduce bedtime rumination. Writing worries down and parking them is a light, self-help version of that approach. (AASM 2021)",
+            "limits": "This is a light reflection, not a substitute for mental health support. If worry or low mood is persistent, speak with a qualified professional.",
+            "active": true
+        },
+        {
+            "habit_id": "sleep-room",
+            "domain": "sleep",
+            "title": "Make the room restful",
+            "description": "Change one thing that makes your sleep space darker, cooler or quieter.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 2
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 3
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 7
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "physical_opportunity"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "12.1",
+                    "implementation": "Suggest one realistic change to light, noise or temperature in the bedroom.",
+                    "delivery_method": "environmental_restructuring"
+                },
+                {
+                    "bct_id": "8.3",
+                    "implementation": "Encourage repeating the same small room adjustment each night.",
+                    "delivery_method": "habit_formation"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Choose one change that is realistic for the person's home.",
+                "Avoid suggestions that require buying equipment.",
+                "Sleep hygiene alone does not treat chronic insomnia."
+            ],
+            "clinical_basis": "AASM and CDC sleep hygiene guidance supports a dark, quiet, comfortably cool bedroom. One small environmental change is enough; sleep hygiene alone does not treat chronic insomnia. (AASM 2021; CDC)",
+            "limits": "General sleep-environment guidance, not medical advice. Persistent insomnia, loud snoring or breathing pauses need clinical assessment.",
+            "active": true
+        },
+        {
+            "habit_id": "sleep-caffeine",
+            "domain": "sleep",
+            "title": "Choose a caffeine cutoff",
+            "description": "Pick a time after which you will switch to water or another caffeine-free drink.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 1
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 2
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 3
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "reflective_motivation",
+                "physical_opportunity"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "1.4",
+                    "implementation": "Help the user choose a personal caffeine cutoff and a replacement drink.",
+                    "delivery_method": "interactive_planning"
+                },
+                {
+                    "bct_id": "8.2",
+                    "implementation": "Suggest swapping one late caffeine drink for a caffeine-free option.",
+                    "delivery_method": "behaviour_substitution"
+                },
+                {
+                    "bct_id": "12.3",
+                    "implementation": "Encourage keeping late caffeine cues out of easy reach.",
+                    "delivery_method": "cue_reduction"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Caffeine sensitivity varies; avoid a rigid rule.",
+                "Do not advise abrupt caffeine withdrawal for heavy users.",
+                "Follow clinician advice during pregnancy or with heart conditions."
+            ],
+            "clinical_basis": "AASM and CDC sleep hygiene guidance suggests limiting caffeine late in the day because it can delay sleep. A personal cutoff is a plan, not a rule; individual sensitivity varies. (AASM 2021; CDC)",
+            "limits": "General guidance only. Follow advice from your healthcare professional, especially during pregnancy or with a heart condition.",
+            "active": true
+        },
+        {
+            "habit_id": "sleep-morning-light",
+            "domain": "sleep",
+            "title": "Step into morning light",
+            "description": "Spend five minutes in daylight after waking, or open the curtains wide.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 7
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 10
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 15
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "physical_opportunity",
+                "automatic_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "7.1",
+                    "implementation": "Offer an optional reminder to step into daylight after waking.",
+                    "delivery_method": "optional_notification"
+                },
+                {
+                    "bct_id": "8.3",
+                    "implementation": "Encourage pairing morning light with an existing morning routine.",
+                    "delivery_method": "habit_formation"
+                },
+                {
+                    "bct_id": "12.1",
+                    "implementation": "Suggest opening curtains wide to make daylight easier to notice.",
+                    "delivery_method": "environmental_restructuring"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Avoid staring directly at the sun.",
+                "Use a shaded outdoor space or bright window instead.",
+                "Follow advice if light sensitivity or a skin condition is present."
+            ],
+            "clinical_basis": "Morning daylight helps anchor the circadian rhythm. AASM CBT-I principles and CDC sleep guidance support regular light exposure and a steady morning routine. Brief exposure is enough. (AASM 2021; CDC)",
+            "limits": "General wellbeing support. Never look directly at the sun. Follow clinician advice if you have light sensitivity or a photosensitive condition.",
+            "active": true
+        },
+        {
+            "habit_id": "sleep-notice",
+            "domain": "sleep",
+            "title": "Notice your sleep pattern",
+            "description": "Make a simple note of when you went to bed and when you woke up.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 2
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 3
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 7
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "psychological_capability",
+                "reflective_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "2.3",
+                    "implementation": "Ask the user to note bedtime and wake time without judgement.",
+                    "delivery_method": "self_monitoring"
+                },
+                {
+                    "bct_id": "2.2",
+                    "implementation": "Offer a short weekly review of the pattern and how it felt.",
+                    "delivery_method": "feedback"
+                },
+                {
+                    "bct_id": "1.5",
+                    "implementation": "Help the user choose one small change based on what they notice.",
+                    "delivery_method": "goal_review"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Keep the note simple and free of pressure.",
+                "Do not interpret the note as a diagnosis.",
+                "Share ongoing sleep concerns with a qualified professional."
+            ],
+            "clinical_basis": "AASM CBT-I uses sleep diaries to reveal patterns without judgement. A simple note is self-monitoring, not a diagnosis. Persistent insomnia or breathing pauses need clinical review. (AASM 2021)",
+            "limits": "A note is not a diagnosis. Share ongoing sleep concerns, loud snoring or daytime sleepiness with a qualified professional.",
+            "active": true
+        }
+    ]
+}

@@ -1,0 +1,24 @@
+.heart-companion {
+    display: block;
+    margin: 0 auto;
+    animation: heartFloat 4s ease-in-out infinite;
+    filter: drop-shadow(0 12px 24px rgba(169, 68, 62, 0.22));
+}
+
+@keyframes heartFloat {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .heart-companion {
+        animation: none;
+    }
+}

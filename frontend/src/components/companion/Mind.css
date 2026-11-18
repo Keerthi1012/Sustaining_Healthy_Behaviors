@@ -1,0 +1,14 @@
+.mind-companion {
+    display: block;
+    flex-shrink: 0;
+    overflow: visible;
+    max-width: 100%;
+    height: auto;
+    transform-origin: center bottom;
+}
+
+.mind-companion path,
+.mind-companion ellipse,
+.mind-companion circle {
+    vector-effect: non-scaling-stroke;
+}

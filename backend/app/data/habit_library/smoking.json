@@ -1,0 +1,505 @@
+{
+    "schema_version": "1.0.0",
+    "catalog_version": "1.0.0",
+    "domain": "smoking",
+    "reviewed_at": "2026-11-14",
+    "reviewed_by": "Habit-RPG content team",
+    "review_status": "internal_review",
+    "expires_at": "2027-11-14",
+    "evidence": [
+        {
+            "id": "who-2024",
+            "source": "WHO tobacco cessation guidance",
+            "year": 2024,
+            "claim": "Behavioural support plus approved medication improves cessation success."
+        },
+        {
+            "id": "usphs-2008",
+            "source": "USPHS clinical practice guideline",
+            "year": 2008,
+            "claim": "Identify triggers and rehearse coping responses alongside counselling."
+        },
+        {
+            "id": "cdc-cravings",
+            "source": "CDC smoking cessation resources",
+            "year": 2023,
+            "claim": "Cravings are time-limited and can be interrupted with coping actions."
+        }
+    ],
+    "boundaries": {
+        "not_for": [
+            "Prescribing or managing cessation medication.",
+            "Replacing a cessation service, counsellor or clinician.",
+            "Managing severe withdrawal or acute medical symptoms on its own."
+        ],
+        "seek_help_if": [
+            "Chest pain, severe breathlessness or fainting.",
+            "Withdrawal symptoms feel unmanageable, or low mood is overwhelming.",
+            "You are pregnant, or managing heart or lung disease."
+        ],
+        "population_exclusions": [
+            "Follow clinical advice if you need supervised cessation medication.",
+            "Use a specialist cessation service for high dependence or complex medical needs."
+        ]
+    },
+    "safety_rules": {
+        "screening": [
+            "Ask about pregnancy, heart or lung disease and current cessation medication.",
+            "Ask whether withdrawal symptoms or low mood feel unmanageable."
+        ],
+        "signals": [
+            {
+                "code": "concerning_symptom",
+                "label": "Concerning symptom",
+                "guidance": "Pause the step and seek medical advice for chest pain, severe breathlessness or fainting."
+            },
+            {
+                "code": "withdrawal_distress",
+                "label": "Withdrawal distress",
+                "guidance": "Encourage contact with a cessation service or clinician and keep the next step small."
+            }
+        ]
+    },
+    "habits": [
+        {
+            "habit_id": "smoking-delay-5",
+            "domain": "smoking",
+            "title": "Delay the next cigarette",
+            "description": "When a craving arrives, wait five minutes before deciding anything.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 7
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 10
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 15
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "psychological_capability",
+                "reflective_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "8.2",
+                    "implementation": "Suggest a five-minute alternative action when an urge appears.",
+                    "delivery_method": "behaviour_substitution"
+                },
+                {
+                    "bct_id": "11.2",
+                    "implementation": "Offer a short grounding exercise during the delay.",
+                    "delivery_method": "stress_management"
+                },
+                {
+                    "bct_id": "1.4",
+                    "implementation": "Help the user choose where and how they will use the delay.",
+                    "delivery_method": "interactive_planning"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Never suggest cutting down instead of seeking evidence-based cessation care.",
+                "Avoid blame or moralising language.",
+                "Signpost professional cessation support and approved medication."
+            ],
+            "clinical_basis": "WHO 2024 tobacco-cessation guidance and USPHS treat urge surfing and delaying the next cigarette as practical behavioural supports alongside pharmacotherapy and counselling. A five-minute delay is a coping step, not a substitute for cessation treatment. (WHO 2024; USPHS 2008)",
+            "limits": "General cessation support, not medical treatment. Combining counselling with approved cessation medication is most effective. Seek clinical advice if you are pregnant or have heart or lung disease.",
+            "active": true
+        },
+        {
+            "habit_id": "smoking-water-breath",
+            "domain": "smoking",
+            "title": "Water and slow breaths",
+            "description": "Drink some water and take five slow breaths when a craving starts.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 2
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 3
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 7
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "psychological_capability",
+                "automatic_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "11.2",
+                    "implementation": "Guide five slow breaths to ride out the peak of a craving.",
+                    "delivery_method": "stress_management"
+                },
+                {
+                    "bct_id": "8.2",
+                    "implementation": "Suggest drinking water as a replacement action.",
+                    "delivery_method": "behaviour_substitution"
+                },
+                {
+                    "bct_id": "7.1",
+                    "implementation": "Offer an optional reminder to use the coping routine.",
+                    "delivery_method": "optional_notification"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Keep breathing slow and comfortable, never forced.",
+                "Do not use water intake to replace medical care.",
+                "Signpost cessation services rather than implying willpower is enough."
+            ],
+            "clinical_basis": "CDC describes cravings as time-limited urges that peak and pass; slow breathing and drinking water can interrupt the cue-response. USPHS guidelines recommend combining behavioural coping with evidence-based cessation support. (CDC; USPHS 2008)",
+            "limits": "General cessation support, not medical treatment. Cravings that feel unmanageable or come with chest pain need clinical advice.",
+            "active": true
+        },
+        {
+            "habit_id": "smoking-trigger-swap",
+            "domain": "smoking",
+            "title": "Swap one trigger",
+            "description": "Choose one usual smoking trigger and plan a different two-minute action instead.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 3
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 7
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 10
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "physical_opportunity",
+                "reflective_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "8.2",
+                    "implementation": "Help the user choose a specific replacement for one smoking trigger.",
+                    "delivery_method": "behaviour_substitution"
+                },
+                {
+                    "bct_id": "12.3",
+                    "implementation": "Suggest reducing exposure to the cue that usually starts smoking.",
+                    "delivery_method": "cue_reduction"
+                },
+                {
+                    "bct_id": "1.4",
+                    "implementation": "Plan the replacement in advance for a high-risk moment.",
+                    "delivery_method": "interactive_planning"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Avoid encouraging smoking as a coping tool.",
+                "Keep replacement actions realistic and low cost.",
+                "Signpost cessation services and approved medication."
+            ],
+            "clinical_basis": "USPHS and WHO guidance recommend identifying triggers and rehearsing alternative behaviours. Swapping one routine cue is a behavioural substitution; pairing it with counselling or medication improves success. (USPHS 2008; WHO 2024)",
+            "limits": "General cessation support, not medical treatment. A trigger swap works best alongside counselling and approved cessation medication.",
+            "active": true
+        },
+        {
+            "habit_id": "smoking-clear-cue",
+            "domain": "smoking",
+            "title": "Clear one smoking cue",
+            "description": "Remove one everyday reminder of smoking from where you spend time.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 2
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 3
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 7
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "physical_opportunity",
+                "automatic_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "12.1",
+                    "implementation": "Suggest removing ashtrays, lighters or other smoking cues from one space.",
+                    "delivery_method": "environmental_restructuring"
+                },
+                {
+                    "bct_id": "12.3",
+                    "implementation": "Encourage keeping smoking cues out of sight and out of reach.",
+                    "delivery_method": "cue_reduction"
+                },
+                {
+                    "bct_id": "1.4",
+                    "implementation": "Help the user choose one place and one cue to change.",
+                    "delivery_method": "interactive_planning"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Choose one change that does not create conflict with others at home.",
+                "Do not imply that environment change alone is treatment.",
+                "Signpost professional support."
+            ],
+            "clinical_basis": "USPHS clinical guidance supports removing smoking cues from the environment and planning around high-risk situations. Changing one cue is a small environmental step, not a guarantee. (USPHS 2008)",
+            "limits": "General cessation support. Removing cues helps but does not replace counselling or approved medication, especially with heavy dependence.",
+            "active": true
+        },
+        {
+            "habit_id": "smoking-notice-trigger",
+            "domain": "smoking",
+            "title": "Notice a trigger",
+            "description": "Write down one trigger and how strong the urge felt, without judgement.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 1
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 2
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 3
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "psychological_capability",
+                "reflective_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "2.3",
+                    "implementation": "Encourage noting a trigger and urge strength without self-criticism.",
+                    "delivery_method": "self_monitoring"
+                },
+                {
+                    "bct_id": "2.2",
+                    "implementation": "Offer a short review of triggers to guide the next coping choice.",
+                    "delivery_method": "feedback"
+                },
+                {
+                    "bct_id": "11.2",
+                    "implementation": "Add a brief compassionate pause after noticing the urge.",
+                    "delivery_method": "stress_management"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Keep the note brief and non-judgemental.",
+                "Do not frame a slip as failure.",
+                "Offer professional support if urges feel overwhelming."
+            ],
+            "clinical_basis": "CDC craving science and USPHS guidance encourage self-monitoring of triggers without self-blame. Noticing a pattern helps choose a coping response; persistent cravings may need clinical support. (CDC; USPHS 2008)",
+            "limits": "General cessation support, not treatment. If cravings or withdrawal feel overwhelming, contact a cessation service or clinician.",
+            "active": true
+        }
+    ]
+}

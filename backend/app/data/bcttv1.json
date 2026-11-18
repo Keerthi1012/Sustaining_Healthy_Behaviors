@@ -1,0 +1,127 @@
+{
+    "schema_version": "1.0.0",
+    "taxonomy_name": "Behaviour Change Technique Taxonomy",
+    "taxonomy_version": "1.0",
+    "source_url": "https://www.bct-taxonomy.com/",
+    "techniques": [
+        {
+            "bct_id": "1.1",
+            "cluster_id": 1,
+            "cluster_name": "Goals and planning",
+            "label": "Goal setting (behavior)",
+            "definition": "Set or agree on a goal defined in terms of the behaviour to be performed."
+        },
+        {
+            "bct_id": "1.2",
+            "cluster_id": 1,
+            "cluster_name": "Goals and planning",
+            "label": "Problem solving",
+            "definition": "Analyse factors influencing behaviour and identify strategies to overcome barriers or increase facilitators."
+        },
+        {
+            "bct_id": "1.4",
+            "cluster_id": 1,
+            "cluster_name": "Goals and planning",
+            "label": "Action planning",
+            "definition": "Prompt detailed planning of the behaviour, including its context, frequency, duration or intensity."
+        },
+        {
+            "bct_id": "1.5",
+            "cluster_id": 1,
+            "cluster_name": "Goals and planning",
+            "label": "Review behavior goal(s)",
+            "definition": "Review behaviour goals and consider modifying them or the behaviour-change strategy based on achievement."
+        },
+        {
+            "bct_id": "2.2",
+            "cluster_id": 2,
+            "cluster_name": "Feedback and monitoring",
+            "label": "Feedback on behaviour",
+            "definition": "Monitor and provide informative or evaluative feedback on behaviour performance."
+        },
+        {
+            "bct_id": "2.3",
+            "cluster_id": 2,
+            "cluster_name": "Feedback and monitoring",
+            "label": "Self-monitoring of behaviour",
+            "definition": "Establish a method for the person to monitor and record their behaviour as part of a behaviour-change strategy."
+        },
+        {
+            "bct_id": "4.1",
+            "cluster_id": 4,
+            "cluster_name": "Shaping knowledge",
+            "label": "Instruction on how to perform a behavior",
+            "definition": "Advise or agree on how to perform the target behaviour."
+        },
+        {
+            "bct_id": "5.1",
+            "cluster_id": 5,
+            "cluster_name": "Natural consequences",
+            "label": "Information about health consequences",
+            "definition": "Provide information about the health consequences of performing the behaviour."
+        },
+        {
+            "bct_id": "7.1",
+            "cluster_id": 7,
+            "cluster_name": "Associations",
+            "label": "Prompts/cues",
+            "definition": "Introduce or define an environmental or social stimulus intended to prompt the behaviour."
+        },
+        {
+            "bct_id": "8.1",
+            "cluster_id": 8,
+            "cluster_name": "Repetition and substitution",
+            "label": "Behavioral practice/rehearsal",
+            "definition": "Prompt practice or rehearsal of the behaviour to develop habit or skill."
+        },
+        {
+            "bct_id": "8.2",
+            "cluster_id": 8,
+            "cluster_name": "Repetition and substitution",
+            "label": "Behavior substitution",
+            "definition": "Prompt substitution of an unwanted behaviour with a wanted or neutral behaviour."
+        },
+        {
+            "bct_id": "8.3",
+            "cluster_id": 8,
+            "cluster_name": "Repetition and substitution",
+            "label": "Habit formation",
+            "definition": "Prompt repetition of a behaviour in the same context so that the context increasingly triggers the behaviour."
+        },
+        {
+            "bct_id": "8.7",
+            "cluster_id": 8,
+            "cluster_name": "Repetition and substitution",
+            "label": "Graded tasks",
+            "definition": "Set easy-to-perform tasks that become increasingly difficult but remain achievable."
+        },
+        {
+            "bct_id": "11.2",
+            "cluster_id": 11,
+            "cluster_name": "Regulation",
+            "label": "Reduce negative emotions",
+            "definition": "Advise on ways of reducing negative emotions to facilitate the target behaviour."
+        },
+        {
+            "bct_id": "12.1",
+            "cluster_id": 12,
+            "cluster_name": "Antecedents",
+            "label": "Restructuring the physical environment",
+            "definition": "Change or advise changes to the physical environment to facilitate wanted behaviour or create barriers to unwanted behaviour."
+        },
+        {
+            "bct_id": "12.3",
+            "cluster_id": 12,
+            "cluster_name": "Antecedents",
+            "label": "Avoidance/reducing exposure to cues for the behavior",
+            "definition": "Advise on avoiding exposure to specific social, contextual or physical cues associated with the behaviour."
+        },
+        {
+            "bct_id": "15.3",
+            "cluster_id": 15,
+            "cluster_name": "Self-belief",
+            "label": "Focus on past success",
+            "definition": "Advise or prompt the person to focus on previous successes in performing the behaviour."
+        }
+    ]
+}

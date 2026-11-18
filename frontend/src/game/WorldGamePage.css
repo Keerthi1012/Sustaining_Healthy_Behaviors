@@ -1,0 +1,376 @@
+.world-game .world-growth {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--cream-300);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(
+        180deg,
+        var(--cream-50) 0%,
+        var(--moss-50) 100%
+    );
+    box-shadow: var(--shadow-sm);
+}
+
+.world-game .world-growth__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+
+.world-game .world-growth__head h2 {
+    margin: 0;
+    font-size: var(--text-xl);
+}
+
+.world-game .world-growth__count {
+    color: var(--moss-700);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.world-game .world-growth__track {
+    display: block;
+    height: 0.6rem;
+    border-radius: 999px;
+    background: var(--cream-300);
+    overflow: hidden;
+}
+
+.world-game .world-growth__track > span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--moss-500), var(--moss-300));
+    transition: width 400ms ease;
+}
+
+.world-game .world-growth__next {
+    margin: 0;
+    color: var(--ink-600);
+    font-size: var(--text-sm);
+}
+
+.world-game .world-realm-list .realm-row__level {
+    white-space: nowrap;
+}
+
+.world-game .village-topbar__end {
+    margin-inline-start: auto;
+}
+
+.world-game .village-brand__eyebrow {
+    text-transform: uppercase;
+}
+
+html[lang="ar"] .world-game .village-brand__eyebrow {
+    letter-spacing: 0;
+}
+
+.world-game .village-log__dot--lantern {
+    background: var(--honey-500);
+}
+
+.world-game .village-log__dot--flowers,
+.world-game .village-log__dot--garden,
+.world-game .village-log__dot--berries {
+    background: var(--moss-500);
+}
+
+.world-game .village-log__dot--stars,
+.world-game .village-log__dot--pond {
+    background: var(--dusk-500);
+}
+
+.world-game .village-log__dot--clear,
+.world-game .village-log__dot--birds,
+.world-game .village-log__dot--horizon,
+.world-game .village-log__dot--butterflies,
+.world-game .village-log__dot--trail,
+.world-game .village-log__dot--table {
+    background: var(--sky-500);
+}
+
+.world-game .world-outcomes {
+    margin-bottom: var(--space-5);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--cream-300);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.world-game .world-outcomes__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+}
+
+.world-game .world-outcomes__head h2 {
+    margin: 0;
+    color: var(--village-ink);
+    font-size: var(--text-xl);
+}
+
+.world-game .world-outcomes__window {
+    flex: 0 0 auto;
+    padding: 0.25rem 0.7rem;
+    border: 1px solid var(--moss-300);
+    border-radius: var(--radius-pill);
+    background: var(--moss-50);
+    color: var(--moss-700);
+    font-size: var(--text-2xs);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.world-game .world-outcomes__grid {
+    display: grid;
+    gap: var(--space-3);
+}
+
+.world-game .world-outcomes__tile {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: var(--space-4);
+    border: 1px solid var(--cream-300);
+    border-radius: var(--radius-md);
+    background: var(--cream-50);
+}
+
+.world-game .world-outcomes__signals {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+}
+
+.world-game .world-outcomes__learning {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--cream-300);
+    border-radius: var(--radius-md);
+    background: var(--moss-50);
+}
+
+.world-game .world-outcomes__learning-head {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+}
+
+.world-game .world-outcomes__learning h3 {
+    margin: 0;
+    color: var(--village-ink);
+    font-size: var(--text-sm);
+    letter-spacing: 0.01em;
+}
+
+.world-game .world-outcomes__learning-lead,
+.world-game .world-outcomes__learning-note {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-2xs);
+    line-height: 1.5;
+}
+
+.world-game .world-outcomes__learning-list {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+    padding-inline-start: 1.1rem;
+    color: var(--village-ink);
+    font-size: var(--text-xs);
+    line-height: 1.5;
+}
+
+.world-game .world-outcomes__learning-note {
+    color: var(--moss-700);
+    font-weight: 600;
+}
+
+.world-game .world-outcomes__signal {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border: 1px solid var(--cream-300);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+}
+
+.world-game .world-outcomes__signal-icon {
+    display: grid;
+    width: 1.9rem;
+    height: 1.9rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: var(--radius-pill);
+    background: var(--moss-50);
+    color: var(--moss-700);
+}
+
+.world-game .world-outcomes__signal > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.world-game .world-outcomes__signal h3 {
+    margin: 0;
+    color: var(--village-ink);
+    font-size: var(--text-sm);
+    letter-spacing: 0.01em;
+}
+
+.world-game .world-outcomes__signal-value {
+    margin: 0;
+    color: var(--village-ink);
+    font-size: var(--text-md);
+    font-weight: 700;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.world-game .world-outcomes__signal-meta,
+.world-game .world-outcomes__signal-detail {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-2xs);
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.world-game .world-outcomes__signal-detail {
+    color: var(--color-text-soft);
+}
+
+.world-game .world-outcomes__icon {
+    display: grid;
+    width: 2.15rem;
+    height: 2.15rem;
+    place-items: center;
+    border-radius: var(--radius-pill);
+    background: var(--moss-50);
+    color: var(--moss-700);
+}
+
+.world-game .world-outcomes__tile h3 {
+    margin: 0;
+    color: var(--village-ink);
+    font-size: var(--text-sm);
+    letter-spacing: 0.01em;
+}
+
+.world-game .world-outcomes__value {
+    margin: 0;
+    color: var(--village-ink);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.world-game .world-outcomes__value--muted {
+    color: var(--ink-600);
+    font-size: var(--text-lg);
+}
+
+.world-game .world-outcomes__badge {
+    align-self: flex-start;
+    padding: 0.2rem 0.55rem;
+    border: 1px solid var(--honey-300);
+    border-radius: var(--radius-pill);
+    background: var(--honey-100);
+    color: var(--honey-700);
+    font-size: var(--text-2xs);
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.world-game .world-outcomes__meta,
+.world-game .world-outcomes__detail {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.world-game .world-outcomes__detail {
+    color: var(--color-text-soft);
+    font-size: var(--text-2xs);
+}
+
+.world-game .world-outcomes__disclaimer {
+    margin: var(--space-3) 0 0;
+    color: var(--color-text-soft);
+    font-size: var(--text-2xs);
+    line-height: 1.5;
+}
+
+.world-game .world-outcomes__methods {
+    margin-top: var(--space-3);
+    border-top: 1px solid var(--cream-300);
+    padding-top: var(--space-3);
+}
+
+.world-game .world-outcomes__methods summary {
+    width: fit-content;
+    max-width: 100%;
+    cursor: pointer;
+    color: var(--moss-700);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.world-game .world-outcomes__methods summary:focus-visible {
+    outline: var(--ring-width) solid var(--color-focus);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+}
+
+.world-game .world-outcomes__methods ul {
+    margin: var(--space-2) 0 0;
+    padding-inline-start: 1.15rem;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: 1.6;
+}
+
+.world-game .world-outcomes__methods li + li {
+    margin-top: 0.35rem;
+}
+
+.world-game .world-outcomes__inclusion {
+    margin: var(--space-3) 0 0;
+    color: var(--color-text-soft);
+    font-size: var(--text-2xs);
+    line-height: 1.5;
+}
+
+@media (min-width: 720px) {
+    .world-game .world-outcomes__grid,
+    .world-game .world-outcomes__signals {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 940px) {
+    .world-game .world-outcomes {
+        padding: var(--space-5);
+    }
+}

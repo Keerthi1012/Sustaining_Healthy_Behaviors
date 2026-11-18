@@ -1,0 +1,511 @@
+{
+    "schema_version": "1.0.0",
+    "catalog_version": "1.0.0",
+    "domain": "nutrition",
+    "reviewed_at": "2026-11-14",
+    "reviewed_by": "Habit-RPG content team",
+    "review_status": "internal_review",
+    "expires_at": "2027-11-14",
+    "evidence": [
+        {
+            "id": "who-healthy-diet-2020",
+            "source": "WHO healthy diet guidance",
+            "year": 2020,
+            "claim": "Vegetables, fruit, pulses and whole grains form the basis of a healthy diet."
+        },
+        {
+            "id": "ada-nutrition-2019",
+            "source": "ADA nutrition therapy guidance",
+            "year": 2019,
+            "claim": "Meal pattern and vegetable-first approaches can support glucose management."
+        },
+        {
+            "id": "cdc-healthy-eating",
+            "source": "CDC healthy eating guidance",
+            "year": 2023,
+            "claim": "Slow eating and water as the default drink support balanced eating."
+        },
+        {
+            "id": "who-sugar-2015",
+            "source": "WHO sugar intake guidance",
+            "year": 2015,
+            "claim": "Limiting free sugars and sugary drinks supports a healthier diet."
+        }
+    ],
+    "boundaries": {
+        "not_for": [
+            "Medical nutrition therapy, diagnosis or treatment of a health condition.",
+            "Prescribing weight loss, supplements or an eating plan for a medical condition.",
+            "Treating disordered eating or body-image concerns."
+        ],
+        "seek_help_if": [
+            "A food allergy or intolerance causes a reaction.",
+            "Eating, body image or weight concerns feel distressing or out of control.",
+            "You have diabetes, kidney disease or another condition needing individual nutrition advice."
+        ],
+        "population_exclusions": [
+            "Follow a clinician-prescribed diet exactly as advised.",
+            "Adapt texture, cultural and allergy needs with a dietitian where needed."
+        ]
+    },
+    "safety_rules": {
+        "screening": [
+            "Ask about food allergies, medically restricted diets and disordered eating history.",
+            "Ask whether a clinician or dietitian has given individual nutrition advice."
+        ],
+        "signals": [
+            {
+                "code": "concerning_symptom",
+                "label": "Food-related concern",
+                "guidance": "Pause the nutrition step and seek advice for allergic reactions, distress around eating or a medical diet conflict."
+            },
+            {
+                "code": "distress",
+                "label": "Eating distress",
+                "guidance": "Keep the step optional and encourage support from a qualified professional if meals or body image feel distressing."
+            }
+        ]
+    },
+    "habits": [
+        {
+            "habit_id": "nutrition-veggie-first",
+            "domain": "nutrition",
+            "title": "Add a vegetable first",
+            "description": "Put one vegetable on your plate before anything else at a meal.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 2
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 3
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 7
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "physical_opportunity",
+                "reflective_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "8.2",
+                    "implementation": "Suggest starting one meal with a vegetable before other foods.",
+                    "delivery_method": "behaviour_substitution"
+                },
+                {
+                    "bct_id": "12.1",
+                    "implementation": "Encourage keeping an easy vegetable option visible or prepared.",
+                    "delivery_method": "environmental_restructuring"
+                },
+                {
+                    "bct_id": "1.4",
+                    "implementation": "Help the user choose which meal will begin with a vegetable.",
+                    "delivery_method": "interactive_planning"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Respect allergies, intolerances and cultural food preferences.",
+                "Offer frozen, canned or pre-prepared vegetables as valid options.",
+                "Do not frame foods as good or bad."
+            ],
+            "clinical_basis": "WHO healthy-diet guidance recommends eating vegetables and fruit daily. ADA nutrition guidance notes that starting meals with non-starchy vegetables can support blood-glucose management. This is a gentle sequence, not a prescription. (WHO 2020; ADA 2019)",
+            "limits": "General nutrition education, not medical nutrition therapy. If you have diabetes, kidney disease, food allergies or a history of disordered eating, follow your clinician's advice.",
+            "active": true
+        },
+        {
+            "habit_id": "nutrition-water-anchor",
+            "domain": "nutrition",
+            "title": "Anchor a glass of water",
+            "description": "Drink a glass of water with a routine you already have.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 1
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 2
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 3
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "physical_opportunity",
+                "automatic_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "8.2",
+                    "implementation": "Suggest replacing one sugary drink with water at a familiar moment.",
+                    "delivery_method": "behaviour_substitution"
+                },
+                {
+                    "bct_id": "7.1",
+                    "implementation": "Offer an optional reminder at the chosen daily anchor.",
+                    "delivery_method": "optional_notification"
+                },
+                {
+                    "bct_id": "12.3",
+                    "implementation": "Encourage keeping water within easy reach and sugary drinks out of sight.",
+                    "delivery_method": "cue_reduction"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Fluid needs vary with health conditions and medication.",
+                "Do not encourage excessive water intake.",
+                "Follow clinician advice for heart, kidney or fluid-restriction conditions."
+            ],
+            "clinical_basis": "CDC and WHO guidance supports water as the default drink and limiting sugary drinks. Anchoring water to an existing routine makes the choice easier; fluid needs vary with health conditions. (CDC; WHO 2015)",
+            "limits": "General guidance, not a fluid prescription. Follow medical advice if you have heart, kidney or fluid-restriction needs.",
+            "active": true
+        },
+        {
+            "habit_id": "nutrition-half-plate",
+            "domain": "nutrition",
+            "title": "Build a half-plate meal",
+            "description": "Fill about half your plate with vegetables or fruit at one meal.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 7
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 10
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 15
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "physical_opportunity",
+                "reflective_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "4.1",
+                    "implementation": "Offer a simple plate illustration for building a balanced meal.",
+                    "delivery_method": "instructional_content"
+                },
+                {
+                    "bct_id": "8.1",
+                    "implementation": "Prompt the user to practise the plate method at one meal.",
+                    "delivery_method": "behavioural_instruction"
+                },
+                {
+                    "bct_id": "1.4",
+                    "implementation": "Help the user choose which meal to build with the plate method.",
+                    "delivery_method": "interactive_planning"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Plate proportions are a guide, not a strict rule.",
+                "Adapt for cultural meals, allergies and medical diets.",
+                "Avoid calorie counting or restrictive framing."
+            ],
+            "clinical_basis": "WHO healthy-diet guidance describes balanced meals rich in vegetables and fruit, with whole grains and pulses. ADA materials use plate methods for portion awareness. Follow personalised advice if you have diabetes or kidney disease. (WHO 2020; ADA)",
+            "limits": "General nutrition education, not medical nutrition therapy. Plate guidance may not fit diabetes, kidney disease or culturally specific meals; adapt with a professional.",
+            "active": true
+        },
+        {
+            "habit_id": "nutrition-protein-pair",
+            "domain": "nutrition",
+            "title": "Pair a protein",
+            "description": "Add a palm-sized portion of protein to one meal.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 2
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 3
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 7
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "physical_opportunity",
+                "reflective_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "4.1",
+                    "implementation": "Describe simple protein options such as beans, eggs, fish or yoghurt.",
+                    "delivery_method": "instructional_content"
+                },
+                {
+                    "bct_id": "8.2",
+                    "implementation": "Suggest adding a protein to a meal the user already eats.",
+                    "delivery_method": "behaviour_substitution"
+                },
+                {
+                    "bct_id": "1.4",
+                    "implementation": "Help the user plan which meal will include the protein.",
+                    "delivery_method": "interactive_planning"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Respect allergies and dietary preferences.",
+                "Offer plant and animal protein options equally.",
+                "Follow renal or medical diet advice where protein is restricted."
+            ],
+            "clinical_basis": "ADA nutrition guidance encourages including protein with meals to support satiety and glucose stability; WHO highlights pulses, fish, eggs and lean meats within a balanced diet. Portion and type should fit medical advice. (ADA; WHO 2020)",
+            "limits": "General nutrition education. If you have kidney disease, a medically restricted diet or food allergies, follow your clinician's or dietitian's advice.",
+            "active": true
+        },
+        {
+            "habit_id": "nutrition-mindful-pause",
+            "domain": "nutrition",
+            "title": "Pause before eating",
+            "description": "Take three slow breaths before your first bite.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 1
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 2
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 3
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "psychological_capability",
+                "automatic_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "11.2",
+                    "implementation": "Guide a short breathing pause before eating.",
+                    "delivery_method": "stress_management"
+                },
+                {
+                    "bct_id": "2.3",
+                    "implementation": "Encourage noticing hunger and fullness without judgement.",
+                    "delivery_method": "self_monitoring"
+                },
+                {
+                    "bct_id": "8.1",
+                    "implementation": "Prompt the user to practise the pause at one meal.",
+                    "delivery_method": "behavioural_instruction"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Keep the pause brief and optional.",
+                "Do not use mindful eating to restrict food or delay needed care.",
+                "Signpost support if eating feels distressing."
+            ],
+            "clinical_basis": "CDC healthy-eating guidance and ADA diabetes self-management support slow, mindful eating to notice fullness. A brief pause is a self-help cue, not a treatment for disordered eating. (CDC; ADA)",
+            "limits": "General wellbeing support, not treatment for disordered eating. If meals or body image feel distressing, speak with a qualified professional.",
+            "active": true
+        }
+    ]
+}

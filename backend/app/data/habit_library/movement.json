@@ -1,0 +1,685 @@
+{
+    "schema_version": "1.0.0",
+    "catalog_version": "1.0.0",
+    "domain": "movement",
+    "reviewed_at": "2026-11-14",
+    "reviewed_by": "Habit-RPG content team",
+    "review_status": "internal_review",
+    "expires_at": "2027-11-14",
+    "evidence": [
+        {
+            "id": "who-2020",
+            "source": "WHO Guidelines on Physical Activity and Sedentary Behaviour",
+            "year": 2020,
+            "claim": "All moderate activity counts; the former 10-minute bout rule was removed."
+        },
+        {
+            "id": "cdc-activity",
+            "source": "CDC Physical Activity Basics",
+            "year": 2023,
+            "claim": "Brief bouts of activity can interrupt sitting and support health."
+        },
+        {
+            "id": "acsm-fitt",
+            "source": "ACSM FITT-VP framework",
+            "year": 2018,
+            "claim": "Frequency, intensity, time, type and progression should be individualised."
+        },
+        {
+            "id": "ada-sitting",
+            "source": "ADA Standards of Care in Diabetes",
+            "year": 2019,
+            "claim": "Short post-meal movement can help interrupt prolonged sitting."
+        }
+    ],
+    "boundaries": {
+        "not_for": [
+            "Diagnosis, treatment or rehabilitation of a medical condition.",
+            "Replacing prescribed exercise, physiotherapy or cardiac rehabilitation."
+        ],
+        "seek_help_if": [
+            "Chest pain, faintness, dizziness or unusual shortness of breath during activity.",
+            "New or worsening joint pain, or symptoms that do not settle with rest."
+        ],
+        "population_exclusions": [
+            "Follow clinician advice if you have been told to restrict activity.",
+            "Use clinician-led programmes for cardiac, lung or musculoskeletal rehabilitation."
+        ]
+    },
+    "safety_rules": {
+        "screening": [
+            "Ask whether a clinician has advised limiting physical activity.",
+            "Ask about chest pain, dizziness or unusual breathlessness during everyday movement."
+        ],
+        "signals": [
+            {
+                "code": "pain",
+                "label": "Pain",
+                "guidance": "Pause the activity, choose a gentler option and seek advice if the pain persists."
+            },
+            {
+                "code": "concerning_symptom",
+                "label": "Concerning symptom",
+                "guidance": "Stop the activity and seek medical advice for chest pain, faintness, dizziness or unusual breathlessness."
+            }
+        ]
+    },
+    "habits": [
+        {
+            "habit_id": "movement-walk-5",
+            "domain": "movement",
+            "title": "Short walk",
+            "description": "Take a comfortable walk at your own pace. The path counts, even when it is short.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 7
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 10
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 15
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "physical_opportunity",
+                "reflective_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "1.4",
+                    "implementation": "Help the user choose when and where they will take their short walk.",
+                    "delivery_method": "interactive_planning"
+                },
+                {
+                    "bct_id": "7.1",
+                    "implementation": "Offer an optional reminder at the user's chosen walking time.",
+                    "delivery_method": "optional_notification"
+                },
+                {
+                    "bct_id": "8.7",
+                    "implementation": "Gradually increase walking duration when the user's progress and feedback support it.",
+                    "delivery_method": "progression_engine"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Adapt the walk to the user's physical ability and health context.",
+                "Allow a shorter or easier alternative.",
+                "Do not recommend progression when the user reports pain, discomfort or concerning symptoms."
+            ],
+            "clinical_basis": "WHO (2020) removed the 10-minute minimum bout for adults, so brief walks count toward weekly activity. ADA and Sports Medicine guidance supports short post-meal walks to interrupt sitting. Start short and build gradually.",
+            "limits": "General wellbeing support, not medical advice.",
+            "active": true
+        },
+        {
+            "habit_id": "movement-mobility-3",
+            "domain": "movement",
+            "title": "Wake up your body",
+            "description": "Try three gentle minutes of shoulder rolls, calf raises or comfortable stretches.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 3
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 7
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 10
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "physical_capability",
+                "automatic_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "4.1",
+                    "implementation": "Offer a brief practical demonstration of each gentle mobility movement.",
+                    "delivery_method": "instructional_content"
+                },
+                {
+                    "bct_id": "8.1",
+                    "implementation": "Prompt the user to practise the movements with clear, simple instructions.",
+                    "delivery_method": "behavioural_instruction"
+                },
+                {
+                    "bct_id": "8.3",
+                    "implementation": "Encourage the user to attach mobility work to an existing morning or sitting routine.",
+                    "delivery_method": "routine_linking"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Keep movements slow and within a comfortable range.",
+                "Use a chair or wall for support if balance is a concern.",
+                "Stop and seek advice if movement causes pain, dizziness or unusual shortness of breath."
+            ],
+            "clinical_basis": "CDC recommends multicomponent balance and strength work for older adults. ACSM FITT-VP supports short, frequent mobility bouts with gradual progression. Stop if movement causes pain or dizziness.",
+            "limits": "Choose movements that feel comfortable. Stop if anything hurts.",
+            "active": true
+        },
+        {
+            "habit_id": "movement-longer-way",
+            "domain": "movement",
+            "title": "Take the longer way",
+            "description": "Add five minutes of walking to a journey you already make.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 7
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 10
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 15
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "physical_opportunity",
+                "automatic_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "7.1",
+                    "implementation": "Offer an optional reminder before a regular trip or errand.",
+                    "delivery_method": "optional_notification"
+                },
+                {
+                    "bct_id": "8.2",
+                    "implementation": "Help the user substitute a longer route for a familiar journey.",
+                    "delivery_method": "behavioural_substitution"
+                },
+                {
+                    "bct_id": "12.1",
+                    "implementation": "Suggest a small environmental cue that makes the longer route easier to choose.",
+                    "delivery_method": "environmental_cue"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Choose routes that feel safe and comfortable.",
+                "Adapt the extra distance to the user's physical ability.",
+                "Do not recommend progression when the user reports pain, discomfort or concerning symptoms."
+            ],
+            "clinical_basis": "WHO (2020) counts all purposeful movement toward activity targets. CDC notes that replacing sitting with brief activity has immediate benefits. ACSM advises gradual increases in duration.",
+            "limits": "This is a nudge, not a target. Your usual route is still a valid choice.",
+            "active": true
+        },
+        {
+            "habit_id": "movement-fresh-air",
+            "domain": "movement",
+            "title": "A little fresh air",
+            "description": "Take a relaxed seven-minute walk outdoors, or find a cool indoor space if it is hot.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 7
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 10
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 12
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 15
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "physical_opportunity",
+                "reflective_motivation"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "7.1",
+                    "implementation": "Offer an optional reminder at a cooler, convenient time of day.",
+                    "delivery_method": "optional_notification"
+                },
+                {
+                    "bct_id": "8.3",
+                    "implementation": "Encourage the user to link outdoor time to an existing daily routine.",
+                    "delivery_method": "routine_linking"
+                },
+                {
+                    "bct_id": "15.3",
+                    "implementation": "Encourage the user to notice the immediate feeling after spending time outdoors.",
+                    "delivery_method": "self_monitoring"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "In hot weather, choose a cooler time and keep water nearby.",
+                "Use sun protection and a safe route.",
+                "Stop and seek advice if the user feels faint, dizzy or unusually breathless."
+            ],
+            "clinical_basis": "WHO (2020) recommends regular moderate activity, indoors or outdoors. ACSM FITT-VP supports gradual duration progression within personal tolerance. In heat, choose a cooler time and hydrate.",
+            "limits": "In hot weather, choose shade, a cooler time or an indoor route.",
+            "active": true
+        },
+        {
+            "habit_id": "movement-rhythm",
+            "domain": "movement",
+            "title": "Move to your own rhythm",
+            "description": "Choose one song and move comfortably for its length. Dancing, swaying or walking all count.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 4
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 6
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 8
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 10
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "automatic_motivation",
+                "psychological_capability"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "8.1",
+                    "implementation": "Prompt the user to move along to one song with a simple invitation.",
+                    "delivery_method": "behavioural_instruction"
+                },
+                {
+                    "bct_id": "8.7",
+                    "implementation": "Gradually increase movement time when the user's feedback supports it.",
+                    "delivery_method": "progression_engine"
+                },
+                {
+                    "bct_id": "11.2",
+                    "implementation": "Suggest a simple cue, such as a favourite song, to make moving easier to remember.",
+                    "delivery_method": "cueing"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Keep the pace comfortable and avoid sudden strenuous movement.",
+                "Choose a clear space and supportive footwear.",
+                "Stop and seek advice if the user feels pain, dizzy or unusually breathless."
+            ],
+            "clinical_basis": "ACSM FITT-VP individualises frequency, intensity, time, type and progression. CDC highlights enjoyable, repeatable activity for adherence. Keep the effort comfortable and stop if symptoms appear.",
+            "limits": "Keep the movement comfortable and safe for the space around you.",
+            "active": true
+        },
+        {
+            "habit_id": "movement-reset",
+            "domain": "movement",
+            "title": "A gentle movement reset",
+            "description": "Take a short movement break instead of staying still for another stretch of time.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 3
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 7
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 10
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "physical_capability",
+                "physical_opportunity"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "4.1",
+                    "implementation": "Offer a brief practical demonstration of a gentle movement break.",
+                    "delivery_method": "instructional_content"
+                },
+                {
+                    "bct_id": "8.7",
+                    "implementation": "Gradually lengthen the movement break when the user's feedback supports it.",
+                    "delivery_method": "progression_engine"
+                },
+                {
+                    "bct_id": "12.1",
+                    "implementation": "Suggest a small environmental cue that prompts a break from sitting.",
+                    "delivery_method": "environmental_cue"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Keep the break gentle, especially after long periods of sitting.",
+                "Rise slowly if the user feels light-headed.",
+                "Stop and seek advice if movement causes pain, dizziness or unusual shortness of breath."
+            ],
+            "clinical_basis": "ADA and Sports Medicine guidance supports short movement breaks to interrupt prolonged sitting, including brief post-meal walks. WHO (2020) confirms very short bouts count toward activity.",
+            "limits": "If you have pain or a health condition, choose a comfortable alternative.",
+            "active": true
+        },
+        {
+            "habit_id": "movement-reflect",
+            "domain": "movement",
+            "title": "Notice what helped",
+            "description": "Look back at the week and choose the movement that felt easiest to fit into your day.",
+            "progression_profiles": [
+                {
+                    "metric": "duration_minutes",
+                    "starting_level": 1,
+                    "levels": [
+                        {
+                            "level": 1,
+                            "name": "Getting started",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 2
+                            }
+                        },
+                        {
+                            "level": 2,
+                            "name": "Building consistency",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 3
+                            }
+                        },
+                        {
+                            "level": 3,
+                            "name": "Growing stronger",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 5
+                            }
+                        },
+                        {
+                            "level": 4,
+                            "name": "Making it a routine",
+                            "target": {
+                                "metric": "duration_minutes",
+                                "value": 8
+                            }
+                        }
+                    ]
+                }
+            ],
+            "com_b_components": [
+                "reflective_motivation",
+                "psychological_capability"
+            ],
+            "bct_mappings": [
+                {
+                    "bct_id": "1.2",
+                    "implementation": "Prompt the user to notice and note which movement felt easiest.",
+                    "delivery_method": "self_monitoring"
+                },
+                {
+                    "bct_id": "1.5",
+                    "implementation": "Ask the user to review the past week's movement moments.",
+                    "delivery_method": "review"
+                },
+                {
+                    "bct_id": "2.2",
+                    "implementation": "Encourage the user to keep a simple record of the movement they chose.",
+                    "delivery_method": "self_monitoring"
+                }
+            ],
+            "tracking_methods": [
+                "manual"
+            ],
+            "progression": {
+                "enabled": true,
+                "strategy": "feedback_gated",
+                "lookback_sessions": 5,
+                "min_successful_sessions": 2,
+                "required_feedback": [
+                    "easy",
+                    "comfortable"
+                ]
+            },
+            "safety_considerations": [
+                "Reflection should feel optional and pressure-free.",
+                "Choose movements that match the user's ability and health context.",
+                "This is wellbeing support, not medical advice."
+            ],
+            "clinical_basis": "WHO (2020) and ACSM behaviour-change guidance support self-monitoring, review and gradual progression. Reflection helps sustain activity without pressure. This is not a substitute for medical advice.",
+            "limits": "There is no perfect answer. The easiest option is useful information.",
+            "active": true
+        }
+    ]
+}
