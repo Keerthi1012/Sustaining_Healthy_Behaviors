@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
     ArrowRight,
     LoaderCircle,
-    ShieldCheck,
     Sprout,
 } from "lucide-react";
 
@@ -283,16 +282,12 @@ function AuthPage({ checking = false, onAuthenticated }) {
                                 </button>
                             </form>
 
-                            <p className="auth-privacy">
-                                <ShieldCheck size={15} aria-hidden="true" />
-                                {t("auth.privacy")}
-                            </p>
-                        </>
+                            </>
                     )}
                 </div>
 
                 <aside className="auth-art">
-                    <MeadowScene growth={0.55} />
+                    <MeadowScene />
                     <div className="auth-art__shade" aria-hidden="true" />
                     <div className="auth-art__note">
                         <span className="eyebrow">

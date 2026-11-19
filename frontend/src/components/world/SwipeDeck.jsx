@@ -6,6 +6,7 @@ const DRAG_THRESHOLD = 70;
 
 function SwipeDeck({
     items,
+    initialIndex = 0,
     legend,
     onChoose,
     chooseLabel,
@@ -13,7 +14,12 @@ function SwipeDeck({
     tip,
 }) {
     const { t } = useI18n();
-    const [index, setIndex] = useState(0);
+    const [index, setIndex] = useState(() =>
+        Math.min(
+            Math.max(Number(initialIndex) || 0, 0),
+            Math.max(items.length - 1, 0)
+        )
+    );
     const [dragX, setDragX] = useState(0);
     const startRef = useRef(null);
     const dragRef = useRef(0);

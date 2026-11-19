@@ -245,6 +245,31 @@
     }
 }
 
+/* ===== Three-Stream Oasis subtle animations ===== */
+
+/* Pool ripple subtle animation - controlled via useEffect in component, 
+   kept here as CSS fallback for environments supporting it */
+.pool-ripple {
+    animation: pool-ripple 5s ease-in-out infinite;
+}
+
+@keyframes pool-ripple {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+/* Reduced motion support for animations */
+@media (prefers-reduced-motion: reduce) {
+    .pool-ripple {
+        animation: none;
+    }
+}
+
 .auth-art {
     position: relative;
     min-height: 300px;
@@ -262,7 +287,7 @@
 .auth-art__shade {
     position: absolute;
     inset: 0;
-    z-index: 1;
+    z-index: 0;
     background:
         linear-gradient(180deg, rgba(31, 42, 36, 0.02) 42%, rgba(31, 42, 36, 0.24) 100%),
         linear-gradient(90deg, rgba(31, 42, 36, 0.08), transparent 45%);
@@ -289,6 +314,17 @@
     font-family: var(--font-display);
     font-size: var(--text-sm);
     line-height: 1.4;
+}
+
+.auth-art__microcopy {
+    position: absolute;
+    bottom: var(--space-3);
+    left: var(--space-3);
+    font-size: var(--text-2xs);
+    color: var(--color-text-soft);
+    line-height: 1.4;
+    font-weight: 500;
+    max-width: calc(100% - var(--space-6));
 }
 
 .auth-art .companion-pair {

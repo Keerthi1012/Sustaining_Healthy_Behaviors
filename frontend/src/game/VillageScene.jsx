@@ -1,7 +1,16 @@
-function PixelTree({ x, y, scale = 1, dark = false }) {
-    const canopy = dark ? "#3f6247" : "#4e7351";
-    const middle = dark ? "#4d7153" : "#5f845a";
-    const light = dark ? "#5c805e" : "#729466";
+function PixelTree({ x, y, scale = 1, dark = false, realm, isDull = false }) {
+    const realmColors = {
+        movement: "#6B9A5A",
+        sleep: "#6D7B8D",
+        nutrition: "#D4A853",
+        smoking: "#88C0D0",
+    };
+    const baseColor = realmColors[realm] || (dark ? "#3f6247" : "#4e7351");
+    const modifier = isDull ? 0.5 : 1; // desaturate by half when dull
+    const color = modifyColor(baseColor, modifier);
+    const canopy = isDull ? modifyColor(baseColor, modifier, true) : (dark ? "#3f6247" : color);
+    const middle = isDull ? modifyColor(baseColor, modifier, true) : (dark ? "#4d7153" : color);
+    const light = isDull ? modifyColor(baseColor, modifier, true) : (dark ? "#5c805e" : color);
 
     return (
         <g transform={`translate(${x} ${y}) scale(${scale})`}>
@@ -23,6 +32,21 @@ function PixelTree({ x, y, scale = 1, dark = false }) {
             <rect x="4" y="-58" width="10" height="6" fill={light} />
         </g>
     );
+}
+
+function modifyColor(hex, modifier, isLight = false) {
+    // Simple desaturation: lighten or darken based on modifier
+    // For simplicity, just reduce saturation
+    const num = parseInt(hex.replace("#", ""), 16);
+    const r = (num >> 16) & 255;
+    const g = (num >> 8) & 255;
+    const b = num & 255;
+    
+    const newR = isLight ? Math.min(255, Math.round(r * modifier)) : Math.max(0, Math.round(r * modifier));
+    const newG = isLight ? Math.min(255, Math.round(g * modifier)) : Math.max(0, Math.round(g * modifier));
+    const newB = isLight ? Math.min(255, Math.round(b * modifier)) : Math.max(0, Math.round(b * modifier));
+    
+    return `#${newR.toString(16).padStart(2, "0")}${newG.toString(16).padStart(2, "0")}${newB.toString(16).padStart(2, "0")}`;
 }
 
 function Cottage({ x, y, scale = 1, chimney = false }) {
@@ -275,12 +299,12 @@ function VillageScene({ lanternLit = false, layers = [] }) {
                 <rect x="604" y="334" width="60" height="5" />
             </g>
 
-            <PixelTree x={140} y={390} scale={1.28} dark />
-            <PixelTree x={212} y={352} scale={0.98} />
-            <PixelTree x={88} y={452} scale={1.1} dark />
-            <PixelTree x={184} y={474} scale={0.9} />
-            <PixelTree x={250} y={408} scale={0.72} dark />
-            <PixelTree x={306} y={366} scale={0.62} />
+            <PixelTree x={140} y={390} scale={1.28} dark realm="movement" />
+            <PixelTree x={212} y={352} scale={0.98} realm="sleep" />
+            <PixelTree x={88} y={452} scale={1.1} realm="nutrition" />
+            <PixelTree x={184} y={474} scale={0.9} realm="smoking" />
+            <PixelTree x={250} y={408} scale={0.72} realm="movement" />
+            <PixelTree x={306} y={366} scale={0.62} realm="sleep" />
 
             <Flower x={112} y={492} color="#f1d69b" />
             <Flower x={156} y={512} color="#dfc5e1" />
@@ -414,6 +438,84 @@ function VillageScene({ lanternLit = false, layers = [] }) {
             )}
         </svg>
     );
+}
+
+function LayerCelebration({ unlockedLayers }) {
+    if (!unlockedLayers || unlockedLayers.length === 0) return null;
+
+    const layerNamesMap = {
+        clear: "Village Cleared!",
+        horizon: "Horizon Unlocked!",
+        stars: "Stars Appear!",
+        birds: "Birds Return!",
+        trail: "Path Built!",
+        pond: "Pond Filled!",
+        garden: "Garden Planted!",
+        berries: "Berries Grown!",
+    };
+
+    return (
+        <g>
+            <text x={480} y={40} textAnchor="middle" fontSize={24} fontWeight="bold" fill="#8a5c20">
+                {unlockedLayers
+                    .map((layer) => layerNamesMap[layer])
+                    .filter(Boolean)
+                    .join(" & ")}
+            </text>
+            <text x={480} y={70} textAnchor="middle" fontSize={16} fill="#6b7280">
+                Village grows with every step
+            </text>
+        </g>
+    );
+}
+
+function ProgressPath({ unlockedLayers }) {
+    if (!unlockedLayers || unlockedLayers.size === 0) return null;
+
+    const layerIcons = {
+        clear: <PixelTree x={100} y={520} scale={0.5} />,
+        horizon: <PixelTree x={150} y={520} scale={0.5} />,
+        pond: <Well x={350} y={520} />,
+        garden: <Flower x={400} y={520} color="#f0b09f" />,
+        berries: <BerryBush x={450} y={520} scale={0.5} />,
+    };
+
+    return (
+        <g>
+            {Array.from(unlockedLayers).map((layer, i) => {
+                const Icon = layerIcons[layer];
+                if (!Icon) return null;
+                return <Icon key={layer} x={100 + i * 60} y={520} />;
+            })}
+        </g>
+    )
+}
+
+function VillageCharacter({ characterState }) {
+    if (characterState === "low-energy") {
+        return (
+            <g>
+                <text x={480} y={300} textAnchor="middle" fontSize={22} fill="#6b7280">
+                    😔
+                </text>
+                <text x={480} y={330} textAnchor="middle" fontSize={14} fill="#6b7280">
+                    Feeling tired
+                </text>
+            </g>
+        );
+    } else if (characterState === "happy") {
+        return (
+            <g>
+                <text x={480} y={300} textAnchor="middle" fontSize={22} fill="#22c55e">
+                    😊
+                </text>
+                <text x={480} y={330} textAnchor="middle" fontSize={14} fill="#22c55e">
+                    Great step!
+                </text>
+            </g>
+        );
+    }
+    return null;
 }
 
 export default VillageScene;

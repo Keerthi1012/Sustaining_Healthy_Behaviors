@@ -38,6 +38,13 @@ import { getOptionalActionableStep } from "../services/planEngine";
 import { loadVillage, saveVillage } from "./storage";
 import "./AdventurePage.css";
 
+const REALM_COLORS = {
+    movement: "#6B9A5A",    // moss green
+    sleep: "#6D7B8D",       // dusk blue
+    nutrition: "#D4A853",   // honey amber
+    smoking: "#88C0D0",     // sky blue
+};
+
 const RESOURCE_ICONS = {
     wood: Trees,
     stone: Mountain,
@@ -51,25 +58,29 @@ const DAY_STATUS_LABELS = {
     locked: "locked",
 };
 
-function ResourceList({ resources }) {
+function ResourceList({ resources, realm }) {
+    const realmColor = REALM_COLORS[realm] || "#6B9A5A";
+
     return (
         <ul className="village-supplies__list">
             {RESOURCE_KEYS.map((key) => {
                 const Icon = RESOURCE_ICONS[key];
+                const resourceColor = REALM_COLORS[realm] || "#6B9A5A";
 
                 return (
                     <li
                         className={`village-resource village-resource--${key}`}
                         key={key}
+                        style={{ color: resourceColor }}
                         aria-label={`${RESOURCES[key].label}: ${resources[key]}`}
                     >
                         <span className="village-resource__icon" aria-hidden="true">
-                            <Icon size={18} />
+                            <Icon size={18} style={{ color: resourceColor }} />
                         </span>
                         <span className="village-resource__label">
                             {RESOURCES[key].label}
                         </span>
-                        <strong>{resources[key]}</strong>
+                        <strong style={{ color: resourceColor }}>{resources[key]}</strong>
                     </li>
                 );
             })}
@@ -180,6 +191,10 @@ function AdventurePage({ journey, user, onExit, onLogout }) {
         progress.currentIndex === -1
             ? null
             : progress.days[progress.currentIndex];
+    const primaryRealm =
+        currentDay?.primary?.domain ??
+        plan?.days?.[0]?.primary?.domain ??
+        null;
     const optionalStep = getOptionalActionableStep(plan);
     const pending = getPendingRewards(village, plan);
     const completedPercent = progress.total
@@ -285,7 +300,7 @@ function AdventurePage({ journey, user, onExit, onLogout }) {
                     Village supplies
                 </h2>
 
-                <ResourceList resources={village.resources} />
+                <ResourceList resources={village.resources} realm={primaryRealm} />
 
                 <div
                     className="village-progress"

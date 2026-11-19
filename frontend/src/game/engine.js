@@ -15,6 +15,9 @@ function prependLog(log, entry) {
 export function createInitialState(planId = "journey", now = new Date()) {
     const at = now.toISOString();
 
+    // Track last login date for dull state
+    const lastLogin = at;
+
     return {
         version: VILLAGE_VERSION,
         planId,
@@ -34,6 +37,13 @@ export function createInitialState(planId = "journey", now = new Date()) {
         ],
         createdAt: at,
         updatedAt: at,
+        // Mood-based character state
+        mood: null,              // current mood: calm, hopeful, tired, heavy, restless
+        moodStepsSinceChange: 0, // count of steps since mood last changed
+        characterState: "neutral", // "neutral", "low-energy", or "happy"
+        // Dull village state after many days without login
+        lastLogin,               // track last login date
+        isDull: false,           // will be updated in claimRewards after checking days since last login
     };
 }
 
@@ -114,7 +124,13 @@ export function claimRewards(state, plan, now = new Date()) {
         claimedRewards,
         log,
         updatedAt: at,
+        lastLogin: at, // update last login date to now
     };
+
+    // Calculate dull state: village is dull if last login was more than 2 days ago
+    const oneDay = 24 * 60 * 60 * 1000;
+    const daysSinceLastLogin = (now - new Date(state.lastLogin)) / oneDay;
+    const isDull = daysSinceLastLogin > 2; // more than 2 days = dull village
 
     if (!isMilestoneComplete(state) && isMilestoneComplete(next)) {
         next = {
@@ -128,8 +144,47 @@ export function claimRewards(state, plan, now = new Date()) {
         };
     }
 
+    // Add celebration for layer unlocks
+    const layerNames = ["clear", "horizon", "stars", "birds", "trail", "pond", "garden", "berries"];
+    const previouslyUnlocked =
+        state.unlockedLayers instanceof Set
+            ? state.unlockedLayers
+            : new Set(state.unlockedLayers ?? []);
+    const newUnlocks = layerNames.filter((layer) => !previouslyUnlocked.has(layer));
+    let celebration = state.celebration;
+    if (newUnlocks.length > 0 && !celebration) {
+        celebration = {
+            type: "layer-unlock",
+            layers: newUnlocks,
+            at,
+            duration: 5000,
+        };
+    }
+
+    // Track mood-based character state
+    const currentMood = state.mood;
+    const moodStepsSinceChange = state.moodStepsSinceChange || 0;
+    
+    // Determine new mood based on step domain (simplified mapping)
+    const newMood = pending?.[0]?.domain || currentMood;
+    
+    // Update character state: after enough steps, character becomes happy
+    const characterState = moodStepsSinceChange >= 3 || newMood !== currentMood
+        ? "happy"
+        : "low-energy";
+    
+    const newMoodSteps = newMood !== currentMood ? 0 : moodStepsSinceChange + 1;
+
     return {
-        state: next,
+        state: {
+            ...next,
+            unlockedLayers: new Set([...(state.unlockedLayers || []), ...newUnlocks]),
+            celebration,
+            mood: newMood,
+            moodStepsSinceChange: newMoodSteps,
+            characterState,
+            isDull, // village dull state after many days without login
+        },
         granted,
         reason: null,
     };

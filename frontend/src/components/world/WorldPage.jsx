@@ -26,7 +26,6 @@ import CelebrationBurst from "./CelebrationBurst";
 import MeasurementSheet from "./MeasurementSheet";
 import ReadinessSheet from "./ReadinessSheet";
 import DemoClockSheet from "./DemoClockSheet";
-import MoodCheckIn from "./MoodCheckIn";
 import ArrivalDeck from "./ArrivalDeck";
 import NudgeBanner from "./NudgeBanner";
 import WhySheet from "./WhySheet";
@@ -55,7 +54,6 @@ import {
     restSlot,
     undoRest,
 } from "../../services/planEngine";
-import { isArrivalDone } from "../../services/arrivalStore";
 import {
     loadEcosystemContext,
     normalizeEcosystemContext,
@@ -76,7 +74,15 @@ import {
     resolveJourneySchedule,
 } from "../../services/realmSchedule";
 import { getDemoClock } from "../../services/demoClock";
-import { getMoodEntry, getMoodOption } from "../../services/moodStore";
+import {
+    getMoodEntry,
+    getMoodOption,
+    saveMoodEntry,
+} from "../../services/moodStore";
+import {
+    isArrivalDone,
+    saveArrivalEntry,
+} from "../../services/arrivalStore";
 import { useNudgeScheduler } from "../../hooks/useNudgeScheduler";
 import {
     REENGAGEMENT_STATES,
@@ -584,8 +590,11 @@ function WorldPage({
     const [activityState, setActivityState] = useState("loading");
     const [checkin, setCheckin] = useState(null);
     const [readinessTarget, setReadinessTarget] = useState(null);
-    const [sheet, setSheet] = useState(null);
-    const [arrival, setArrival] = useState(null);
+    const [sheet, setSheet] = useState(() =>
+        user?.user_id && !isArrivalDone(user.user_id, todayKey)
+            ? "mood"
+            : null
+    );
     const [whyEntry, setWhyEntry] = useState(null);
     const [celebration, setCelebration] = useState(false);
     const [danceVariant, setDanceVariant] = useState(0);
@@ -722,117 +731,6 @@ function WorldPage({
     }, []);
 
     useEffect(() => {
-        let active = true;
-
-        if (!user?.user_id) return;
-
-        const todayKey = toDateKey();
-        const alreadyDone = isArrivalDone(user.user_id, todayKey);
-
-        if (alreadyDone) return;
-
-        setArrival({
-            open: true,
-            userId: user.user_id,
-        });
-
-        return () => {
-            active = false;
-        };
-    }, [user?.user_id, todayKey]);
-
-    useEffect(() => {
-        if (!arrival?.open) return;
-
-        const handleClose = () => {
-            setArrival({
-                ...arrival,
-                open: false,
-            });
-        };
-
-        const handleApply = ({
-            mood,
-            time,
-            weather,
-            energy,
-            headspace,
-        }) => {
-            setArrival({
-                ...arrival,
-                open: false,
-                applied: {
-                    mood,
-                    time,
-                    weather,
-                    energy,
-                    headspace,
-                },
-            });
-
-            // Save arrival record
-            saveArrivalEntry(user.user_id, {
-                mood,
-                time,
-                weather,
-                applied: {
-                    dayId: arrival?.dayId ?? null,
-                    slot: "primary",
-                    beforeDose: null,
-                    afterDose: null,
-                    beforeLabel: "",
-                    afterLabel: "",
-                },
-            });
-
-            // Apply readiness with derived values
-            const dayId = arrival?.dayId ?? `day-${todayKey}`;
-            const nextPlan = applyReadiness(
-                journey.plan,
-                dayId,
-                "primary",
-                {
-                    energy: energy ?? "okay",
-                    time: time ?? 5,
-                    weather: weather ?? "mild",
-                    headspace: headspace ?? "neutral",
-                }
-            );
-
-            if (nextPlan !== journey.plan) {
-                onJourneyChange({
-                    ...journey,
-                    plan: nextPlan,
-                    updatedAt: new Date().toISOString(),
-                });
-            }
-
-            setArrival(null);
-        };
-
-        const handleSkip = () => {
-            saveArrivalEntry(user.user_id, { skipped: true });
-            setArrival(null);
-        };
-
-        setArrival({
-            ...arrival,
-            onClose: handleClose,
-            onApply: handleApply,
-            onSkip: handleSkip,
-        });
-    }, [arrival]);
-
-    useEffect(() => {
-        if (!arrival?.open) return undefined;
-
-        return () => {
-            window.removeEventListener("focus", handleFocus);
-            document.removeEventListener("visibilitychange", handleFocus);
-        };
-    }, [arrival?.open]);
-
-    useEffect(() => {
         if (!celebration) return undefined;
         const timeout = window.setTimeout(() => setCelebration(false), 3200);
         return () => window.clearTimeout(timeout);
@@ -881,12 +779,6 @@ function WorldPage({
         t,
         user?.user_id,
     ]);
-
-    useEffect(() => {
-    }, []);
-
-    useEffect(() => {
-    }, []);
 
     const commitPlan = useCallback(
         (nextPlan, extra = {}, options = {}) => {
@@ -1062,6 +954,60 @@ function WorldPage({
         }
         setReadinessTarget(null);
         setNotice(t("readiness.notice"));
+    };
+
+    const handleApplyArrival = ({ mood, time, weather, readiness }) => {
+        if (!user?.user_id) return;
+
+        saveMoodEntry(user.user_id, mood);
+
+        const target = readinessTargetEntry;
+        let beforeDose = null;
+        let afterDose = null;
+
+        if (target) {
+            beforeDose = target.entry?.dose ?? null;
+
+            const nextPlan = applyReadiness(
+                plan,
+                target.dayId,
+                target.slot,
+                readiness
+            );
+
+            if (nextPlan !== plan) {
+                commitPlan(nextPlan);
+            }
+
+            afterDose =
+                nextPlan.days.find((day) => day.id === target.dayId)?.[
+                    target.slot
+                ]?.dose ?? beforeDose;
+        }
+
+        saveArrivalEntry(user.user_id, {
+            mood,
+            time,
+            weather,
+            applied: target
+                ? {
+                      dayId: target.dayId,
+                      slot: target.slot,
+                      beforeDose,
+                      afterDose,
+                  }
+                : null,
+        });
+
+        setSheet(null);
+        setNotice(
+            t(target ? "arrival.notice" : "arrival.noticeNoStep")
+        );
+    };
+
+    const handleSkipArrival = () => {
+        saveArrivalEntry(user?.user_id, { skipped: true });
+        setSheet(null);
     };
 
     const handleReturn = () => {
@@ -1796,47 +1742,16 @@ function WorldPage({
                 />
             )}
 
-            {arrival?.open && (
-                <ArrivalDeck
-                    userId={user?.user_id}
-                    onClose={() => setArrival({ open: false })}
-                    onApply={({ mood, time, weather, energy, headspace }) => {
-                        // Apply readiness with derived values
-                        const dayId = arrival?.dayId ?? `day-${toDateKey()}`;
-                        const nextPlan = applyReadiness(
-                            journey.plan,
-                            dayId,
-                            "primary",
-                            {
-                                energy: energy ?? "okay",
-                                time: time ?? 5,
-                                weather: weather ?? "mild",
-                                headspace: headspace ?? "neutral",
-                            }
-                        );
-
-                        if (nextPlan !== journey.plan) {
-                            onJourneyChange({
-                                ...journey,
-                                plan: nextPlan,
-                                updatedAt: new Date().toISOString(),
-                            });
-                        }
-
-                        setArrival({ open: false });
-                    }}
-                />
-            )}
-
             {sheet === "demoClock" && (
                 <DemoClockSheet onClose={() => setSheet(null)} />
             )}
 
             {sheet === "mood" && (
-                <MoodCheckIn
-                    userId={user?.user_id}
+                <ArrivalDeck
                     initialMood={moodToday?.mood}
                     onClose={() => setSheet(null)}
+                    onApply={handleApplyArrival}
+                    onSkip={handleSkipArrival}
                 />
             )}
 

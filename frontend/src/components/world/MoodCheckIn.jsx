@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import Sheet from "../ui/Sheet";
 import SwipeDeck from "./SwipeDeck";
@@ -10,16 +10,9 @@ import {
 import { useI18n } from "../../i18n";
 
 function MoodCheckIn({ userId, initialMood, onClose, onSaved }) {
-    const { t, locale } = useI18n();
+    const { t } = useI18n();
     const [mood, setMood] = useState(initialMood ?? null);
-    const [initialized, setInitialized] = useState(false);
     const option = mood ? getMoodOption(mood) : null;
-
-    // Wait for i18n catalog to fully load before rendering cards
-    useEffect(() => {
-        const timeout = setTimeout(() => setInitialized(true), 100);
-        return () => clearTimeout(timeout);
-    }, [locale]);
 
     const handleChoose = (id) => {
         const entry = saveMoodEntry(userId, id);
@@ -28,13 +21,13 @@ function MoodCheckIn({ userId, initialMood, onClose, onSaved }) {
         onSaved?.(entry);
     };
 
-    const moodSwipeDeck = initialized ? (
+    const moodSwipeDeck = (
         <SwipeDeck
             items={MOOD_OPTIONS}
             legend={t("mood.legend")}
             onChoose={handleChoose}
         />
-    ) : null;
+    );
 
     return (
         <Sheet

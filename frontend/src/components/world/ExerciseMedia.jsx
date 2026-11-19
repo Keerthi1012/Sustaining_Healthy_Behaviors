@@ -68,8 +68,8 @@ function ExerciseMedia({ entry, variant = "card", className = "" }) {
         >
             <div
                 className="exercise-media__scene"
-                role="img"
-                aria-label={alt}
+                role={media.src ? undefined : "img"}
+                aria-label={media.src ? undefined : alt}
             >
                 {media.src ? (
                     <img

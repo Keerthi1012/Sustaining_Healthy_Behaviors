@@ -28,6 +28,7 @@ export const ONBOARDING_BY_GOAL = {
             {
                 id: "time",
                 labelKey: "onboarding.movement.time.label",
+                optional: true,
                 options: [
                     {
                         value: "5 minutes",

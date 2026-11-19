@@ -31,16 +31,6 @@ const difficultyOptions = [
     },
 ];
 
-const barrierOptions = [
-    { value: "Nothing in particular", labelKey: "checkin.barrier.none" },
-    { value: "Not enough time", labelKey: "checkin.barrier.time" },
-    { value: "Low energy", labelKey: "checkin.barrier.energy" },
-    { value: "Hot weather", labelKey: "checkin.barrier.hotWeather" },
-    { value: "I lost motivation", labelKey: "checkin.barrier.motivation" },
-    { value: "Family or work demands", labelKey: "checkin.barrier.demands" },
-    { value: "Discomfort or pain", labelKey: "checkin.barrier.pain" },
-];
-
 const enjoymentOptions = [
     {
         value: "not_for_me",
@@ -77,6 +67,41 @@ const safetyOptions = [
     },
 ];
 
+const BARRIER_OPTIONS = {
+    movement: [
+        { value: "Nothing in particular", labelKey: "checkin.barrier.none" },
+        { value: "Not enough time", labelKey: "checkin.barrier.time" },
+        { value: "Low energy", labelKey: "checkin.barrier.energy" },
+        { value: "Hot weather", labelKey: "checkin.barrier.hotWeather" },
+        { value: "I lost motivation", labelKey: "checkin.barrier.motivation" },
+        { value: "Family or work demands", labelKey: "checkin.barrier.demands" },
+        { value: "Discomfort or pain", labelKey: "checkin.barrier.pain" },
+    ],
+    smoking: [
+        { value: "Nothing in particular", labelKey: "checkin.barrier.none" },
+        { value: "Family or work demands", labelKey: "checkin.barrier.demands" },
+        { value: "Discomfort or pain", labelKey: "checkin.barrier.pain" },
+    ],
+    nutrition: [
+        { value: "Nothing in particular", labelKey: "checkin.barrier.none" },
+        { value: "Not enough time", labelKey: "checkin.barrier.time" },
+        { value: "Cost or food access", labelKey: "checkin.barrier.cost" },
+        { value: "Cravings or habits", labelKey: "checkin.barrier.cravings" },
+        { value: "Family or work demands", labelKey: "checkin.barrier.demands" },
+        { value: "Not sure where to start", labelKey: "checkin.barrier.unsure" },
+        { value: "A medical diet I follow", labelKey: "checkin.barrier.medical" },
+    ],
+    sleep: [
+        { value: "Nothing in particular", labelKey: "checkin.barrier.none" },
+        { value: "Late screen time", labelKey: "checkin.barrier.screens" },
+        { value: "Racing thoughts", labelKey: "checkin.barrier.thoughts" },
+        { value: "Irregular routine", labelKey: "checkin.barrier.irregular" },
+        { value: "Work or family demands", labelKey: "checkin.barrier.demands" },
+        { value: "My sleep environment", labelKey: "checkin.barrier.environment" },
+        { value: "Not sure", labelKey: "checkin.barrier.unsure" },
+    ],
+};
+
 function CheckInSheet({ entry, onClose, onSave }) {
     const { t, locale } = useI18n();
     const [difficulty, setDifficulty] = useState("comfortable");
@@ -87,6 +112,9 @@ function CheckInSheet({ entry, onClose, onSave }) {
     const content = getExerciseContent(entry, locale);
     const isMovement = entry.domain === "movement";
     const safetyConcern = safety !== "none";
+
+    const barrierOptions =
+        BARRIER_OPTIONS[entry.domain] ?? BARRIER_OPTIONS.movement;
 
     return (
         <Sheet

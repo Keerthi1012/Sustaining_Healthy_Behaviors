@@ -89,7 +89,7 @@ const READINESS_AR = {
 
 export const EXERCISE_CONTENT = {
     "movement-walk-5": {
-        media: { icon: "Footprints", accent: "moss", alt: "A quiet walking path", altAr: "مسار مشي هقيق", src: walkImage },
+        media: { icon: "Footprints", accent: "moss", alt: "A quiet walking path", altAr: "مسار مشي هادئ", src: walkImage },
         ar: {
             title: "مشي خمس دقائق",
             text: "خذ مشية مريحة بوتيرتك. الطريق يُحتسب حتى إن كان قصيرًا.",

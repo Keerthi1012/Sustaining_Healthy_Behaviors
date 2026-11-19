@@ -23,6 +23,10 @@ import {
 } from "../../services/planEngine";
 import { getSampleAbuDhabiProfile } from "../../services/ecosystemStore";
 import { mapHabitToAction } from "../../services/habitApi";
+import {
+    getArrivalEntry,
+    saveArrivalEntry,
+} from "../../services/arrivalStore";
 import { I18nProvider } from "../../i18n";
 import { setDemoClock } from "../../services/demoClock";
 import { addDays } from "../../utils/date";
@@ -67,8 +71,12 @@ function makePlan(dayCount = 3, startedDaysAgo = 5) {
     return { ...plan, days: plan.days.slice(0, dayCount) };
 }
 
-function renderWorld(plan, overrides = {}, journeyOverrides = {}) {
+function renderWorld(plan, overrides = {}, journeyOverrides = {}, options = {}) {
     const onJourneyChange = vi.fn();
+
+    if (options.seedArrival !== false) {
+        saveArrivalEntry(user.user_id, { skipped: true });
+    }
 
     const journey = {
         version: 2,
@@ -1151,7 +1159,7 @@ describe("time-based nudges on the wellness home", () => {
     });
 });
 
-describe("daily mood check-in on the wellness home", () => {
+describe("daily arrival deck on the wellness home", () => {
     beforeEach(() => {
         window.localStorage.clear();
     });
@@ -1161,57 +1169,210 @@ describe("daily mood check-in on the wellness home", () => {
         window.localStorage.clear();
     });
 
-    it("offers the mood deck until today is checked in", async () => {
-        const tester = userEvent.setup();
+    it("auto-opens once a day when the arrival check-in is not done", () => {
+        renderWorld(makePlan(), {}, {}, { seedArrival: false });
 
+        expect(
+            screen.getByRole("heading", {
+                name: "How are you arriving today?",
+            })
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole("group", { name: "Today's mood cards" })
+        ).toBeInTheDocument();
+    });
+
+    it("does not auto-open when today's arrival is already recorded", () => {
         renderWorld(makePlan());
 
         expect(
-            screen.getByText("Daily check-in")
-        ).toBeInTheDocument();
-        expect(
-            screen.getByRole("button", { name: "Open mood deck" })
-        ).toBeInTheDocument();
+            screen.queryByRole("dialog")
+        ).not.toBeInTheDocument();
+        expect(screen.getByText("Daily check-in")).toBeInTheDocument();
+    });
+
+    it("walks mood, time and weather, then applies the readiness", async () => {
+        const tester = userEvent.setup();
+        const plan = makePlan();
+        const { onJourneyChange } = renderWorld(
+            plan,
+            {},
+            {},
+            { seedArrival: false }
+        );
 
         await tester.click(
-            screen.getByRole("button", { name: "Open mood deck" })
+            screen.getByRole("button", { name: "This is me" })
+        );
+        await tester.click(
+            screen.getByRole("button", { name: "This is me" })
         );
         await tester.click(
             screen.getByRole("button", { name: "This is me" })
         );
 
         expect(
-            screen.getByText("Today feels Calm.")
+            screen.getByText("Today's step will use this.")
         ).toBeInTheDocument();
+        expect(screen.getByText("Calm")).toBeInTheDocument();
+        expect(screen.getByText("2 min")).toBeInTheDocument();
+        expect(screen.getByText("Mild")).toBeInTheDocument();
 
         await tester.click(
-            screen.getByRole("button", { name: "Back to my world" })
+            screen.getByRole("button", { name: "Use this for today" })
         );
 
         expect(
-            screen.queryByRole("button", { name: "Open mood deck" })
+            screen.queryByRole("dialog")
         ).not.toBeInTheDocument();
         expect(
             screen.getByText("Today feels Calm.")
         ).toBeInTheDocument();
+
+        const entry = getArrivalEntry(user.user_id);
+
+        expect(entry).toMatchObject({
+            mood: "calm",
+            time: 2,
+            weather: "mild",
+            skipped: false,
+        });
+        expect(entry.applied.dayId).toBe(plan.days[0].id);
+        expect(entry.applied.slot).toBe("primary");
+        expect(entry.applied.afterDose).toBeLessThanOrEqual(
+            entry.applied.beforeDose
+        );
+
+        expect(onJourneyChange).toHaveBeenCalled();
+        const [nextJourney] = onJourneyChange.mock.calls[0];
+
+        expect(nextJourney.plan.days[0].primary.dose).toBe(
+            entry.applied.afterDose
+        );
+        expect(nextJourney.plan.days[0].primary.readiness).toMatchObject(
+            {
+                energy: "good",
+                headspace: "light",
+                time: 2,
+                weather: "mild",
+            }
+        );
+    });
+
+    it("lets an answer be changed before applying", async () => {
+        const tester = userEvent.setup();
+
+        renderWorld(makePlan(), {}, {}, { seedArrival: false });
+
+        await tester.click(
+            screen.getByRole("button", { name: "This is me" })
+        );
+        await tester.click(
+            screen.getByRole("button", { name: "This is me" })
+        );
+        await tester.click(
+            screen.getByRole("button", { name: "This is me" })
+        );
+
+        await tester.click(
+            screen.getAllByRole("button", { name: "Change" })[1]
+        );
+
         expect(
-            screen.getByRole("button", { name: "Change" })
+            screen.getByRole("group", {
+                name: "How much time do you have?",
+            })
+        ).toBeInTheDocument();
+
+        await tester.click(
+            screen.getByRole("button", { name: "Not today" })
+        );
+        await tester.click(
+            screen.getByRole("button", { name: "This is me" })
+        );
+        await tester.click(
+            screen.getByRole("button", { name: "This is me" })
+        );
+
+        expect(screen.getByText("5 min")).toBeInTheDocument();
+
+        await tester.click(
+            screen.getByRole("button", { name: "Use this for today" })
+        );
+
+        expect(getArrivalEntry(user.user_id)).toMatchObject({
+            mood: "calm",
+            time: 5,
+            weather: "mild",
+        });
+    });
+
+    it("keeps the usual step when the deck is skipped", async () => {
+        const tester = userEvent.setup();
+        const { onJourneyChange } = renderWorld(
+            makePlan(),
+            {},
+            {},
+            { seedArrival: false }
+        );
+
+        await tester.click(
+            screen.getByRole("button", { name: "Keep my usual step" })
+        );
+
+        expect(
+            screen.queryByRole("dialog")
+        ).not.toBeInTheDocument();
+        expect(getArrivalEntry(user.user_id)).toMatchObject({
+            skipped: true,
+            mood: null,
+        });
+        expect(onJourneyChange).not.toHaveBeenCalled();
+        expect(screen.getByText("Daily check-in")).toBeInTheDocument();
+    });
+
+    it("does not reopen after skipping, and can be reopened from the card", async () => {
+        const tester = userEvent.setup();
+
+        renderWorld(makePlan(), {}, {}, { seedArrival: false });
+        await tester.click(
+            screen.getByRole("button", { name: "Keep my usual step" })
+        );
+
+        cleanup();
+        renderWorld(makePlan(), {}, {}, { seedArrival: false });
+
+        expect(
+            screen.queryByRole("dialog")
+        ).not.toBeInTheDocument();
+
+        await tester.click(
+            screen.getByRole("button", { name: "Open mood deck" })
+        );
+
+        expect(
+            screen.getByRole("heading", {
+                name: "How are you arriving today?",
+            })
         ).toBeInTheDocument();
     });
 
     it("shows the saved mood immediately on the next visit", async () => {
         const tester = userEvent.setup();
 
-        renderWorld(makePlan());
+        renderWorld(makePlan(), {}, {}, { seedArrival: false });
 
         await tester.click(
-            screen.getByRole("button", { name: "Open mood deck" })
+            screen.getByRole("button", { name: "This is me" })
         );
         await tester.click(
             screen.getByRole("button", { name: "This is me" })
         );
         await tester.click(
-            screen.getByRole("button", { name: "Back to my world" })
+            screen.getByRole("button", { name: "This is me" })
+        );
+        await tester.click(
+            screen.getByRole("button", { name: "Use this for today" })
         );
 
         cleanup();
@@ -1223,5 +1384,8 @@ describe("daily mood check-in on the wellness home", () => {
         expect(
             screen.queryByText("Daily check-in")
         ).not.toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: "Change" })
+        ).toBeInTheDocument();
     });
 });

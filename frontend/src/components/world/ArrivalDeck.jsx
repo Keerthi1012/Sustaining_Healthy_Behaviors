@@ -1,141 +1,121 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import { useI18n } from "../../i18n";
 import SwipeDeck from "./SwipeDeck";
-
-import {
-    ARRIVAL_TIME_VALUES,
-    MOOD_READINESS,
-    ARRIVAL_WEATHER_VALUES,
-    buildArrivalReadiness,
-} from "../../services/moodReadiness";
-
-import { saveArrivalEntry, isArrivalDone, loadArrivalHistory } from "../../services/arrivalStore";
-
+import { buildArrivalReadiness } from "../../services/moodReadiness";
 import Sheet from "../ui/Sheet";
 
-function ArrivalDeck({ userId, onClose, onApply }) {
-    const { t, locale } = useI18n();
+const MOOD_OPTIONS = [
+    {
+        id: "calm",
+        labelKey: "mood.card.calm.label",
+        hintKey: "mood.card.calm.hint",
+        emoji: "😌",
+    },
+    {
+        id: "hopeful",
+        labelKey: "mood.card.hopeful.label",
+        hintKey: "mood.card.hopeful.hint",
+        emoji: "🌱",
+    },
+    {
+        id: "tired",
+        labelKey: "mood.card.tired.label",
+        hintKey: "mood.card.tired.hint",
+        emoji: "😴",
+    },
+    {
+        id: "heavy",
+        labelKey: "mood.card.heavy.label",
+        hintKey: "mood.card.heavy.hint",
+        emoji: "😔",
+    },
+    {
+        id: "restless",
+        labelKey: "mood.card.restless.label",
+        hintKey: "mood.card.restless.hint",
+        emoji: "🌀",
+    },
+];
+
+const TIME_OPTIONS = [
+    { id: "2", labelKey: "arrival.time.two", emoji: "⌚", duration: 2 },
+    { id: "5", labelKey: "arrival.time.five", emoji: "⌚", duration: 5 },
+    { id: "10", labelKey: "arrival.time.ten", emoji: "⌚", duration: 10 },
+];
+
+const WEATHER_OPTIONS = [
+    { id: "mild", labelKey: "arrival.weather.mild", emoji: "🌤️" },
+    { id: "hot", labelKey: "arrival.weather.hot", emoji: "☀️" },
+    { id: "rainy", labelKey: "arrival.weather.rainy", emoji: "🌧️" },
+    { id: "cold", labelKey: "arrival.weather.cold", emoji: "❄️" },
+];
+
+const STEP_ORDER = ["mood", "time", "weather", "summary"];
+
+function ArrivalDeck({ initialMood = null, onClose, onApply, onSkip }) {
+    const { t } = useI18n();
     const [step, setStep] = useState("mood");
-    const [mood, setMood] = useState(null);
+    const [mood, setMood] = useState(initialMood);
     const [time, setTime] = useState(null);
     const [weather, setWeather] = useState(null);
-    const [energy, setEnergy] = useState(null);
-    const [headspace, setHeadspace] = useState(null);
-    const [arrivalRecord, setArrivalRecord] = useState(null);
-    const [initialized, setInitialized] = useState(false);
 
-    useEffect(() => {
-        if (!userId) return;
-        const existing = loadArrivalHistory(userId).find(
-            (entry) => entry.date === new Date().toISOString().split("T")[0]
-        );
-        if (existing) {
-            setArrivalRecord(existing);
-            setStep("done");
-        }
-    }, [userId]);
-
-    // Wait for i18n catalog to fully load before rendering cards
-    useEffect(() => {
-        // Allow one render cycle for i18n catalog to settle
-        const timeout = setTimeout(() => setInitialized(true), 100);
-        return () => clearTimeout(timeout);
-    }, [locale]);
-
-    const moodOptions = [
-        { id: "calm", labelKey: "mood.card.calm.label", hintKey: "mood.card.calm.hint", emoji: "😌" },
-        { id: "hopeful", labelKey: "mood.card.hopeful.label", hintKey: "mood.card.hopeful.hint", emoji: "🌱" },
-        { id: "tired", labelKey: "mood.card.tired.label", hintKey: "mood.card.tired.hint", emoji: "😴" },
-        { id: "heavy", labelKey: "mood.card.heavy.label", hintKey: "mood.card.heavy.hint", emoji: "😔" },
-        { id: "restless", labelKey: "mood.card.restless.label", hintKey: "mood.card.restless.hint", emoji: "🌀" },
-    ];
-
-    const timeOptions = [
-        { id: "2", labelKey: "arrival.time.two", emoji: "⌚", duration: 2 },
-        { id: "5", labelKey: "arrival.time.five", emoji: "⌚", duration: 5 },
-        { id: "10", labelKey: "arrival.time.ten", emoji: "⌚", duration: 10 },
-    ];
-
-    const weatherOptions = [
-        { id: "mild", labelKey: "arrival.weather.mild", emoji: "🌤️" },
-        { id: "hot", labelKey: "arrival.weather.hot", emoji: "☀️" },
-        { id: "rainy", labelKey: "arrival.weather.rainy", emoji: "🌧️" },
-        { id: "cold", labelKey: "arrival.weather.cold", emoji: "❄️" },
-    ];
+    const moodOption =
+        MOOD_OPTIONS.find((option) => option.id === mood) ?? null;
+    const timeOption =
+        TIME_OPTIONS.find((option) => option.duration === time) ?? null;
+    const weatherOption =
+        WEATHER_OPTIONS.find((option) => option.id === weather) ?? null;
+    const ready = Boolean(moodOption && timeOption && weatherOption);
 
     const handleMoodChange = (id) => {
         setMood(id);
-        const readiness = buildArrivalReadiness({ mood: id });
-        setEnergy(readiness.energy);
-        setHeadspace(readiness.headspace);
         setStep("time");
     };
 
     const handleTimeChange = (id) => {
-        const selected = timeOptions.find((o) => o.id === id);
-        if (selected) {
-            setTime(Number(selected.duration));
-            setStep("weather");
-        }
+        const selected = TIME_OPTIONS.find((option) => option.id === id);
+        if (!selected) return;
+        setTime(selected.duration);
+        setStep("weather");
     };
 
     const handleWeatherChange = (id) => {
-        const selected = weatherOptions.find((o) => o.id === id);
-        if (selected) {
-            setWeather(selected.id);
-            setStep("done");
-            // Derive readiness on complete
-            const readiness = buildArrivalReadiness({
-                mood,
-                time: Number(time),
-                weather: selected.id,
-            });
-            setEnergy(readiness.energy);
-            setHeadspace(readiness.headspace);
-        }
+        const selected = WEATHER_OPTIONS.find((option) => option.id === id);
+        if (!selected) return;
+        setWeather(selected.id);
+        setStep("summary");
     };
 
     const handleApply = () => {
-        if (!mood || time === null || !weather) return;
+        if (!ready) return;
 
-        const readiness = buildArrivalReadiness({
+        onApply?.({
             mood,
-            time: Number(time),
+            time,
             weather,
+            readiness: buildArrivalReadiness({ mood, time, weather }),
         });
-
-        const dayId = `day-${new Date().toISOString().slice(0, 10)}`;
-        saveArrivalEntry(userId, {
-            mood,
-            time: Number(time),
-            weather,
-            applied: {
-                dayId,
-                slot: "primary",
-                beforeDose: null,
-                afterDose: null,
-                beforeLabel: "",
-                afterLabel: "",
-            },
-        });
-
-        onApply && onApply({ mood, time: Number(time), weather, energy, headspace });
-        setStep("done");
+        onClose?.();
     };
 
     const handleSkip = () => {
-        saveArrivalEntry(userId, { skipped: true });
-        setStep("done");
+        onSkip?.();
+        onClose?.();
     };
 
-    if (step === "done") return null;
+    const goBack = () => {
+        const index = STEP_ORDER.indexOf(step);
+        setStep(STEP_ORDER[Math.max(0, index - 1)]);
+    };
+
+    const summary = ready ? buildArrivalReadiness({ mood, time, weather }) : null;
 
     return (
         <Sheet
             title={t("arrival.title")}
             eyebrow={t("arrival.eyebrow")}
-            onClose={() => setArrival({ open: false })}
+            onClose={() => onClose?.()}
             footer={
                 <>
                     <button
@@ -149,62 +129,148 @@ function ArrivalDeck({ userId, onClose, onApply }) {
                         className="btn btn--primary"
                         type="button"
                         onClick={handleApply}
-                        disabled={!mood || time === null || !weather}
+                        disabled={!ready}
                     >
                         {t("arrival.apply")}
                     </button>
                 </>
             }
         >
-            <p className="sheet-lead">{t("arrival.lead")}</p>
+            {step === "summary" ? (
+                <div className="arrival-summary">
+                    <p className="sheet-lead">{t("arrival.summaryLead")}</p>
 
-            {step === "mood" && (
-                <SwipeDeck
-                    items={moodOptions}
-                    legend={t("arrival.moodLegend")}
-                    onChoose={handleMoodChange}
-                    chooseLabel={t("arrival.choose")}
-                    passLabel={t("arrival.pass")}
-                >
-                    {initialized && moodOptions.map((option) => ({
-                        id: option.id,
-                        labelKey: option.labelKey,
-                        hintKey: option.hintKey,
-                        emoji: option.emoji,
-                    }))}
-                </SwipeDeck>
-            )}
+                    <ul className="arrival-summary__list">
+                        <li>
+                            <span
+                                className="arrival-summary__emoji"
+                                aria-hidden="true"
+                            >
+                                {moodOption?.emoji}
+                            </span>
+                            <span className="arrival-summary__label">
+                                {t("arrival.summaryMood")}
+                            </span>
+                            <strong>{t(moodOption.labelKey)}</strong>
+                            <button
+                                className="text-button"
+                                type="button"
+                                onClick={() => setStep("mood")}
+                            >
+                                {t("arrival.change")}
+                            </button>
+                        </li>
+                        <li>
+                            <span
+                                className="arrival-summary__emoji"
+                                aria-hidden="true"
+                            >
+                                {timeOption?.emoji}
+                            </span>
+                            <span className="arrival-summary__label">
+                                {t("arrival.summaryTime")}
+                            </span>
+                            <strong>{t(timeOption.labelKey)}</strong>
+                            <button
+                                className="text-button"
+                                type="button"
+                                onClick={() => setStep("time")}
+                            >
+                                {t("arrival.change")}
+                            </button>
+                        </li>
+                        <li>
+                            <span
+                                className="arrival-summary__emoji"
+                                aria-hidden="true"
+                            >
+                                {weatherOption?.emoji}
+                            </span>
+                            <span className="arrival-summary__label">
+                                {t("arrival.conditions")}
+                            </span>
+                            <strong>{t(weatherOption.labelKey)}</strong>
+                            <button
+                                className="text-button"
+                                type="button"
+                                onClick={() => setStep("weather")}
+                            >
+                                {t("arrival.change")}
+                            </button>
+                        </li>
+                    </ul>
 
-            {step === "time" && (
-                <SwipeDeck
-                    items={timeOptions}
-                    legend={t("arrival.timeLegend")}
-                    onChoose={handleTimeChange}
-                    chooseLabel={t("arrival.choose")}
-                    passLabel={t("arrival.pass")}
-                >
-                    {initialized && timeOptions.map((option) => ({
-                        id: option.id,
-                        labelKey: option.labelKey,
-                        emoji: option.emoji,
-                    }))}
-                </SwipeDeck>
-            )}
+                    <p className="arrival-summary__note">
+                        {t("arrival.readiness", {
+                            time: summary.time,
+                            energy: t(
+                                `readiness.energy.${summary.energy}.label`
+                            ),
+                        })}
+                    </p>
+                </div>
+            ) : (
+                <>
+                    <p className="sheet-lead">{t("arrival.lead")}</p>
 
-            {step === "weather" && (
-                <SwipeDeck
-                    items={weatherOptions}
-                    legend={t("arrival.weatherLegend")}
-                    onChoose={handleWeatherChange}
-                    chooseLabel={t("arrival.choose")}
-                    passLabel={t("arrival.pass")}
-                >
-                    {initialized && weatherOptions.map((option) => ({
-                        id: option.id,
-                        labelKey: option.labelKey,
-                        emoji: option.emoji,
-                    }))}
-                </SwipeDeck>
+                    {step === "mood" && (
+                        <SwipeDeck
+                            items={MOOD_OPTIONS}
+                            initialIndex={Math.max(
+                                0,
+                                MOOD_OPTIONS.findIndex(
+                                    (option) => option.id === mood
+                                )
+                            )}
+                            legend={t("arrival.moodLegend")}
+                            onChoose={handleMoodChange}
+                            chooseLabel={t("arrival.mood.choose")}
+                            passLabel={t("arrival.mood.pass")}
+                        />
+                    )}
+
+                    {step === "time" && (
+                        <SwipeDeck
+                            items={TIME_OPTIONS}
+                            initialIndex={Math.max(
+                                0,
+                                TIME_OPTIONS.findIndex(
+                                    (option) => option.duration === time
+                                )
+                            )}
+                            legend={t("arrival.timeLegend")}
+                            onChoose={handleTimeChange}
+                            chooseLabel={t("arrival.mood.choose")}
+                            passLabel={t("arrival.mood.pass")}
+                        />
+                    )}
+
+                    {step === "weather" && (
+                        <SwipeDeck
+                            items={WEATHER_OPTIONS}
+                            initialIndex={Math.max(
+                                0,
+                                WEATHER_OPTIONS.findIndex(
+                                    (option) => option.id === weather
+                                )
+                            )}
+                            legend={t("arrival.conditionsLegend")}
+                            onChoose={handleWeatherChange}
+                            chooseLabel={t("arrival.mood.choose")}
+                            passLabel={t("arrival.mood.pass")}
+                        />
+                    )}
+
+                    {step !== "mood" && (
+                        <button
+                            className="text-button"
+                            type="button"
+                            onClick={goBack}
+                        >
+                            {t("arrival.back")}
+                        </button>
+                    )}
+                </>
             )}
         </Sheet>
     );
