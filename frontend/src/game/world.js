@@ -1,8 +1,3 @@
-import {
-    getCompletedEntries,
-    getPlannedEntries,
-} from "../services/planEngine";
-
 export const WORLD_REALMS = [
     {
         id: "movement",
@@ -54,10 +49,37 @@ export const WORLD_REALMS = [
     },
 ];
 
-function getRealmCompleted(plan, realmId) {
-    return getPlannedEntries(plan).filter(
-        (entry) =>
-            entry.domain === realmId && entry.status === "completed"
+function getAllGrowthEntries(plan) {
+    return (plan?.days ?? [])
+        .flatMap((day) => [day?.primary, day?.secondary])
+        .filter(Boolean);
+}
+
+export function getGrowthCompletedEntries(plan) {
+    return getAllGrowthEntries(plan).filter(
+        (entry) => entry?.status === "completed"
+    );
+}
+
+export function getGrowthProgress(plan) {
+    const entries = getAllGrowthEntries(plan);
+    const completed = entries.filter(
+        (entry) => entry?.status === "completed"
+    ).length;
+    const planned = entries.length;
+    const percent = planned
+        ? Math.min(
+              100,
+              Math.max(0, Math.round((completed / planned) * 100))
+          )
+        : 0;
+
+    return { completed, planned, percent };
+}
+
+function getRealmCompleted(completedEntries, realmId) {
+    return completedEntries.filter(
+        (entry) => entry?.domain === realmId
     ).length;
 }
 
@@ -75,9 +97,10 @@ export function getWorldGrowth(plan) {
     const counts = {};
     const unlocks = [];
     const layers = [];
+    const completedEntries = getGrowthCompletedEntries(plan);
 
     for (const realm of WORLD_REALMS) {
-        const count = getRealmCompleted(plan, realm.id);
+        const count = getRealmCompleted(completedEntries, realm.id);
         counts[realm.id] = count;
 
         for (const milestone of realm.milestones) {
@@ -112,7 +135,7 @@ export function getWorldGrowth(plan) {
 }
 
 export function getRecentWorldMoments(plan, limit = 4) {
-    const completed = getCompletedEntries(plan);
+    const completed = getGrowthCompletedEntries(plan);
 
     return [...completed]
         .reverse()

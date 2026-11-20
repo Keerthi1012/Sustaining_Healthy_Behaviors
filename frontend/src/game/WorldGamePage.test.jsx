@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import WorldGamePage from "./WorldGamePage";
@@ -44,19 +44,19 @@ function makePlan(context) {
     return { ...plan, days: plan.days.slice(0, 3) };
 }
 
-function renderWorld(plan, { locale } = {}) {
+function renderWorld(plan, { locale, pageUser = user } = {}) {
     const onExit = vi.fn();
     const onLogout = vi.fn();
     const page = (
         <WorldGamePage
             journey={{ plan, profile, preferences: {} }}
-            user={user}
+            user={pageUser}
             onExit={onExit}
             onLogout={onLogout}
         />
     );
 
-    render(
+    const view = render(
         locale ? (
             <I18nProvider initialLocale={locale}>{page}</I18nProvider>
         ) : (
@@ -64,7 +64,7 @@ function renderWorld(plan, { locale } = {}) {
         )
     );
 
-    return { onExit, onLogout };
+    return { ...view, onExit, onLogout };
 }
 
 function completeFirstThree(base) {
@@ -115,6 +115,117 @@ describe("WorldGamePage", () => {
         expect(
             screen.getByText("Wildflowers opened along the valley path.")
         ).toBeInTheDocument();
+    });
+
+    it("grows from out-of-order demo completions and keeps progress in range", () => {
+        const base = makePlan();
+        const plan = completeSlot(
+            base,
+            base.days[2].id,
+            "primary",
+            feedback
+        );
+
+        expect(base.days[0].primary.status).toBe("planned");
+
+        const { container } = renderWorld(plan);
+        const progress = screen.getByRole("progressbar", {
+            name: "World growth",
+        });
+        const now = Number(progress.getAttribute("aria-valuenow"));
+        const max = Number(progress.getAttribute("aria-valuemax"));
+        const width = Number.parseFloat(
+            progress.querySelector("span").style.width
+        );
+
+        expect(now).toBe(1);
+        expect(max).toBe(3);
+        expect(now).toBeLessThanOrEqual(max);
+        expect(width).toBeGreaterThanOrEqual(0);
+        expect(width).toBeLessThanOrEqual(100);
+        expect(
+            within(container).getByText(
+                "Wildflowers opened along the valley path."
+            )
+        ).toBeInTheDocument();
+    });
+
+    it("keeps the same village state after navigating away and returning", async () => {
+        const base = makePlan();
+        const plan = completeSlot(
+            base,
+            base.days[2].id,
+            "primary",
+            feedback
+        );
+        const first = renderWorld(plan);
+        const tester = userEvent.setup();
+
+        await tester.click(
+            within(first.container).getByRole("button", {
+                name: "Back to today",
+            })
+        );
+        expect(first.onExit).toHaveBeenCalledTimes(1);
+
+        cleanup();
+        renderWorld(plan);
+
+        expect(
+            screen.getByRole("progressbar", { name: "World growth" })
+        ).toHaveAttribute("aria-valuenow", "1");
+        expect(
+            screen.getByText("Wildflowers opened along the valley path.")
+        ).toBeInTheDocument();
+    });
+
+    it("keeps the same village state after a remount-style reload", () => {
+        const base = makePlan();
+        const plan = completeSlot(
+            base,
+            base.days[2].id,
+            "primary",
+            feedback
+        );
+
+        renderWorld(plan);
+        cleanup();
+        renderWorld(plan);
+
+        expect(
+            screen.getByRole("progressbar", { name: "World growth" })
+        ).toHaveAttribute("aria-valuenow", "1");
+        expect(
+            screen.getByText("Wildflowers opened along the valley path.")
+        ).toBeInTheDocument();
+    });
+
+    it("does not share village growth between two users", () => {
+        const firstBase = makePlan();
+        const firstPlan = completeSlot(
+            firstBase,
+            firstBase.days[2].id,
+            "primary",
+            feedback
+        );
+        const secondPlan = makePlan();
+        const first = renderWorld(firstPlan, {
+            pageUser: { ...user, user_id: "user-alice" },
+        });
+        const second = renderWorld(secondPlan, {
+            pageUser: { ...user, user_id: "user-bob" },
+        });
+
+        expect(
+            within(first.container).getByRole("progressbar", {
+                name: "World growth",
+            })
+        ).toHaveAttribute("aria-valuenow", "1");
+        expect(
+            within(second.container).getByRole("progressbar", {
+                name: "World growth",
+            })
+        ).toHaveAttribute("aria-valuenow", "0");
     });
 
     it("resets the legacy village storage on mount", () => {

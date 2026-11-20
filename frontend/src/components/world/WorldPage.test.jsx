@@ -125,9 +125,10 @@ async function applyDemoDay(dayIndex, time = "19:30") {
 
 function renderWorld(plan, overrides = {}, journeyOverrides = {}, options = {}) {
     const onJourneyChange = vi.fn();
+    const pageUser = options.user ?? user;
 
     if (options.seedArrival !== false) {
-        saveArrivalEntry(user.user_id, { skipped: true });
+        saveArrivalEntry(pageUser.user_id, { skipped: true });
     }
 
     const journey = {
@@ -142,7 +143,7 @@ function renderWorld(plan, overrides = {}, journeyOverrides = {}, options = {}) 
     const page = (
         <WorldPage
             journey={journey}
-            user={user}
+            user={pageUser}
             onJourneyChange={onJourneyChange}
             onReset={vi.fn()}
             onOpenAdventure={vi.fn()}
@@ -151,7 +152,7 @@ function renderWorld(plan, overrides = {}, journeyOverrides = {}, options = {}) 
         />
     );
 
-    render(
+    const view = render(
         options.locale ? (
             <I18nProvider initialLocale={options.locale}>{page}</I18nProvider>
         ) : (
@@ -159,7 +160,7 @@ function renderWorld(plan, overrides = {}, journeyOverrides = {}, options = {}) 
         )
     );
 
-    return { onJourneyChange, journey };
+    return { ...view, onJourneyChange, journey, pageUser };
 }
 
 function completeDay(plan, index) {
@@ -2492,5 +2493,260 @@ describe("daily arrival deck on the wellness home", () => {
         expect(
             screen.getByRole("button", { name: "Change" })
         ).toBeInTheDocument();
+    });
+});
+
+describe("village growth feedback", () => {
+    beforeEach(() => {
+        window.localStorage.clear();
+    });
+
+    afterEach(() => {
+        cleanup();
+        window.localStorage.clear();
+        vi.unstubAllEnvs();
+    });
+
+    async function saveFirstStep(tester, container, { safety } = {}) {
+        await tester.click(
+            within(container).getByRole("button", { name: /I did it/i })
+        );
+
+        if (safety) {
+            const safetyInput = container.querySelector(
+                `input[name="safety"][value="${safety}"]`
+            );
+
+            expect(safetyInput).not.toBeNull();
+            await tester.click(safetyInput);
+        }
+
+        await tester.click(
+            within(container).getByRole("button", {
+                name: safety ? /Pause and save/i : /Save this step/i,
+            })
+        );
+    }
+
+    it("announces village growth after a successful local completion", async () => {
+        const { container, onJourneyChange } = renderWorld(makePlan());
+        const tester = userEvent.setup();
+
+        await saveFirstStep(tester, container);
+
+        await waitFor(() => expect(onJourneyChange).toHaveBeenCalled());
+
+        const notice = await waitFor(() => {
+            const node = container.querySelector(".growth-notice");
+
+            expect(node).not.toBeNull();
+
+            return node;
+        });
+
+        expect(notice).toHaveAttribute("role", "status");
+        expect(notice).toHaveAttribute("aria-live", "polite");
+        expect(notice).toHaveTextContent(en["world.home.growthReady"]);
+        expect(notice).toHaveTextContent(
+            interpolate(en["world.home.next"], {
+                moment: en["world.moment.sleep.1"],
+            })
+        );
+        expect(container.querySelectorAll(".growth-notice")).toHaveLength(1);
+    });
+
+    it("does not announce village growth after a safety pause", async () => {
+        const { container, onJourneyChange } = renderWorld(makePlan());
+        const tester = userEvent.setup();
+
+        await saveFirstStep(tester, container, { safety: "pain" });
+
+        await waitFor(() => expect(onJourneyChange).toHaveBeenCalled());
+
+        expect(container.querySelector(".growth-notice")).toBeNull();
+    });
+
+    it("keeps sync notices in their own status region", async () => {
+        const { container, onJourneyChange } = renderWorld(makePlan(), {
+            syncNotice: "Journey synced just now",
+        });
+        const tester = userEvent.setup();
+
+        await saveFirstStep(tester, container);
+
+        await waitFor(() => expect(onJourneyChange).toHaveBeenCalled());
+        await waitFor(() =>
+            expect(container.querySelector(".growth-notice")).not.toBeNull()
+        );
+
+        const syncNode = within(container).getByText(
+            "Journey synced just now"
+        );
+        const syncStatus = syncNode.closest('[role="status"]');
+        const growthStatus = container.querySelector(".growth-notice");
+
+        expect(syncStatus).not.toBeNull();
+        expect(syncStatus).not.toBe(growthStatus);
+        expect(
+            container.querySelectorAll('[role="status"]').length
+        ).toBeGreaterThanOrEqual(2);
+        expect(syncStatus).toHaveTextContent("Journey synced just now");
+    });
+
+    it("announces growth after a successful backend completion", async () => {
+        vi.stubEnv("VITE_USE_BACKEND_JOURNEY", "true");
+        const plan = makePlan();
+        const onCompleteJourney = vi.fn(async (command) => ({
+            journey: {
+                plan: completeSlot(
+                    plan,
+                    command.dayId,
+                    command.slot,
+                    command.feedback
+                ),
+            },
+        }));
+        const { container } = renderWorld(plan, { onCompleteJourney });
+        const tester = userEvent.setup();
+
+        await saveFirstStep(tester, container);
+
+        await waitFor(() =>
+            expect(onCompleteJourney).toHaveBeenCalledTimes(1)
+        );
+        await waitFor(() =>
+            expect(container.querySelector(".growth-notice")).not.toBeNull()
+        );
+
+        expect(container.querySelector(".growth-notice")).toHaveTextContent(
+            en["world.home.growthReady"]
+        );
+    });
+
+    it("does not announce growth when the backend completion fails", async () => {
+        vi.stubEnv("VITE_USE_BACKEND_JOURNEY", "true");
+        const onCompleteJourney = vi.fn(async () => {
+            throw new Error("offline");
+        });
+        const { container } = renderWorld(makePlan(), { onCompleteJourney });
+        const tester = userEvent.setup();
+
+        await saveFirstStep(tester, container);
+
+        await waitFor(() =>
+            expect(onCompleteJourney).toHaveBeenCalledTimes(1)
+        );
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(container.querySelector(".growth-notice")).toBeNull();
+    });
+
+    it("keeps notification state independent for two users", async () => {
+        const alicePlan = makePlan();
+        const bobPlan = makePlan();
+        const bob = {
+            user_id: "user-bob",
+            username: "bob",
+            display_name: "Bob",
+        };
+        const alice = renderWorld(alicePlan);
+        const bobView = renderWorld(bobPlan, {}, {}, { user: bob });
+        const tester = userEvent.setup();
+
+        await saveFirstStep(tester, alice.container);
+
+        await waitFor(() => expect(alice.onJourneyChange).toHaveBeenCalled());
+        await waitFor(() =>
+            expect(
+                alice.container.querySelector(".growth-notice")
+            ).not.toBeNull()
+        );
+
+        expect(
+            bobView.container.querySelector(".growth-notice")
+        ).toBeNull();
+        expect(bobView.onJourneyChange).not.toHaveBeenCalled();
+    });
+});
+
+describe("fresh journeys and demo dates", () => {
+    beforeEach(() => {
+        window.localStorage.clear();
+    });
+
+    afterEach(() => {
+        cleanup();
+        window.localStorage.clear();
+    });
+
+    it("does not show Welcome Back for a new journey on a future demo date", () => {
+        const plan = makePlan(7, 0);
+
+        setDemoClock("12:00", plan.days[2].date);
+        renderWorld(
+            plan,
+            {},
+            { preferences: { showReturnCard: true, quietWorld: true } }
+        );
+
+        expect(
+            screen.queryByRole("heading", {
+                name: "Your world kept a place for you.",
+            })
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole("heading", { name: "Start smaller today." })
+        ).not.toBeInTheDocument();
+    });
+
+    it("still shows Welcome Back for a backdated journey on a future demo date", () => {
+        const plan = makePlan(7, 6);
+        const futureDemoDate = toDateKey(addDays(new Date(), 1));
+
+        setDemoClock("12:00", futureDemoDate);
+        renderWorld(
+            plan,
+            {},
+            { preferences: { showReturnCard: true, quietWorld: true } }
+        );
+
+        expect(
+            screen.getByRole("heading", {
+                name: "Your world kept a place for you.",
+            })
+        ).toBeInTheDocument();
+    });
+
+    it("does not invent a lapse while switching demo days on a fresh journey", async () => {
+        const plan = makePlan(7, 0);
+
+        seedDemoDayArrivals(plan);
+        renderWorld(
+            plan,
+            {},
+            { preferences: { showReturnCard: true, quietWorld: true } }
+        );
+
+        await applyDemoDay(5, "12:00");
+
+        expect(
+            screen.queryByRole("heading", {
+                name: "Your world kept a place for you.",
+            })
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole("heading", { name: "Start smaller today." })
+        ).not.toBeInTheDocument();
+
+        await applyDemoDay(6, "12:00");
+
+        expect(
+            screen.queryByRole("heading", {
+                name: "Your world kept a place for you.",
+            })
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole("heading", { name: "Start smaller today." })
+        ).not.toBeInTheDocument();
     });
 });

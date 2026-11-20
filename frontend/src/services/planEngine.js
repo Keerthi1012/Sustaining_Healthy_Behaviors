@@ -2,6 +2,7 @@ import { getActionsForGoal } from "../data/actions";
 import { getGoal } from "../data/goals";
 import { addDays, daysBetween, toDateKey } from "../utils/date";
 import { isBackendProgressionEnabled } from "./config";
+import { getDemoDateKey } from "./demoClock";
 import {
     DEFAULT_ECOSYSTEM_CONTEXT,
     normalizeEcosystemContext,
@@ -1262,6 +1263,8 @@ export function undoRest(plan, dayId, slot) {
     };
 }
 
+const NEW_PLAN_ACTIVITY_GRACE_DAYS = 3;
+
 export function getLapseInfo(plan, todayKey = toDateKey()) {
     if (!plan) {
         return {
@@ -1270,10 +1273,6 @@ export function getLapseInfo(plan, todayKey = toDateKey()) {
             daysSinceLastComplete: 0,
         };
     }
-
-    const waiting = plan.days.filter(
-        (day) => day.date < todayKey && !isDayResolved(day)
-    );
 
     // A rested day is a real resolution. It should never make the user look
     // lapsed, even though it does not count as a completed moment.
@@ -1284,13 +1283,36 @@ export function getLapseInfo(plan, todayKey = toDateKey()) {
         .sort()
         .at(-1);
 
-    const daysSinceLastComplete = resolvedAt
-        ? daysBetween(toDateKey(resolvedAt), todayKey)
-        : daysBetween(plan.startDate, todayKey);
+    // A newly created plan can look stale when a demo date is ahead of the
+    // real creation date. Only guard that simulated case; real-date lapse and
+    // reengagement behaviour stays unchanged.
+    const realTodayKey = toDateKey();
+    const demoDateKey = getDemoDateKey();
+    const hasFutureDemoDate = Boolean(
+        demoDateKey && demoDateKey > realTodayKey
+    );
+    const realPlanAge = daysBetween(plan.startDate, realTodayKey);
+    const isFreshPlanWithoutHistory =
+        hasFutureDemoDate &&
+        !resolvedAt &&
+        realPlanAge < NEW_PLAN_ACTIVITY_GRACE_DAYS;
+
+    const waiting = isFreshPlanWithoutHistory
+        ? []
+        : plan.days.filter(
+              (day) => day.date < todayKey && !isDayResolved(day)
+          );
+
+    const daysSinceLastComplete = isFreshPlanWithoutHistory
+        ? 0
+        : resolvedAt
+          ? daysBetween(toDateKey(resolvedAt), todayKey)
+          : daysBetween(plan.startDate, todayKey);
 
     // The plan never skips a day, so a pause is only worth mentioning once the
     // user has actually been away for a few days.
-    const needsReturn = daysSinceLastComplete >= 3;
+    const needsReturn =
+        !isFreshPlanWithoutHistory && daysSinceLastComplete >= 3;
 
     return {
         needsReturn,

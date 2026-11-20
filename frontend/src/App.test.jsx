@@ -14,6 +14,8 @@ import {
     saveJourney,
 } from "./services/planStore";
 import { saveSession } from "./services/authStore";
+import { getDemoClock, setDemoClock } from "./services/demoClock";
+import { addDays, toDateKey } from "./utils/date";
 
 const session = {
     token: "test-token",
@@ -128,9 +130,11 @@ describe("App journey", () => {
             name: /Build my starting plan/i,
         });
         expect(submit).toBeEnabled();
+        setDemoClock("12:00", toDateKey(addDays(new Date(), 2)));
         await user.click(submit);
 
         await screen.findAllByText("Valley of Vitality");
+        expect(getDemoClock()).toBeNull();
         expect(screen.getByText("Daily quest")).toBeInTheDocument();
         expect(screen.getByText("In progress")).toBeInTheDocument();
         expect(
@@ -324,6 +328,7 @@ describe("App journey", () => {
         render(<App />);
 
         await screen.findAllByText("Valley of Vitality");
+        setDemoClock("12:00", toDateKey(addDays(new Date(), 2)));
 
         await user.click(
             screen.getByRole("button", {
@@ -337,6 +342,7 @@ describe("App journey", () => {
                 name: /Return to your gentle world/i,
             })
         ).toBeInTheDocument();
+        expect(getDemoClock()).toBeNull();
         expect(window.localStorage.getItem("sproutly.auth.v1")).toBeNull();
         await waitFor(() => {
             expect(fetchMock).toHaveBeenCalledWith(
@@ -344,6 +350,54 @@ describe("App journey", () => {
                 expect.objectContaining({ method: "POST" })
             );
         });
+    });
+
+    it("clears the demo clock when starting over", async () => {
+        signInForTest();
+        vi.stubGlobal("fetch", makeFetchMock());
+
+        const plan = buildPlan({
+            primaryGoalId: "movement",
+            answers: {
+                time: "10 minutes",
+                barrier: "Not enough time",
+            },
+        });
+        saveJourney(session.user.user_id, {
+            profile: {
+                primaryGoalId: "movement",
+                answers: {
+                    time: "10 minutes",
+                    barrier: "Not enough time",
+                },
+            },
+            plan,
+            preferences: {
+                showReturnCard: false,
+                quietWorld: true,
+            },
+        });
+
+        const user = userEvent.setup();
+        render(<App />);
+
+        await screen.findAllByText("Valley of Vitality");
+        setDemoClock("12:00", toDateKey(addDays(new Date(), 2)));
+
+        await user.click(
+            screen.getByRole("button", { name: "Open settings" })
+        );
+        await user.click(screen.getByRole("button", { name: "Start over" }));
+        await user.click(
+            screen.getByRole("button", { name: "Yes, clear this journey" })
+        );
+
+        expect(
+            await screen.findByRole("heading", {
+                name: /Grow a little every day/i,
+            })
+        ).toBeInTheDocument();
+        expect(getDemoClock()).toBeNull();
     });
 });
 

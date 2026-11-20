@@ -26,6 +26,7 @@ import {
 } from "./services/authStore";
 import { getCurrentUser, logoutAccount } from "./services/authApi";
 import { isBackendJourneyEnabled } from "./services/config";
+import { clearDemoClock } from "./services/demoClock";
 import {
     completeCurrentJourney,
     deleteCurrentJourney,
@@ -573,6 +574,7 @@ function App() {
         const token = session?.token;
 
         syncRef.current.changeVersion += 1;
+        clearDemoClock();
         clearSession();
         setSession(null);
         setJourney(null);
@@ -661,6 +663,9 @@ function App() {
             userId,
             ecosystemContext
         );
+
+        clearDemoClock();
+
         const plan = await buildPlanAsync(profile, undefined, {
             token: session.token,
             ecosystemContext: savedContext,
@@ -695,6 +700,7 @@ function App() {
         const userId = session.user.user_id;
         const token = session.token;
 
+        clearDemoClock();
         clearJourney(userId);
         clearSyncState(userId);
         clearOutbox(userId);

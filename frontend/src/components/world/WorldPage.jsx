@@ -46,7 +46,6 @@ import {
     completeSlot,
     getActionableDay,
     getActionableDayIndex,
-    getCompletedEntries,
     getDayResolution,
     getLapseInfo,
     getPlanSlots,
@@ -108,7 +107,10 @@ import {
     saveReminderState,
     sendBrowserNotification,
 } from "../../services/reminderService";
-import { getWorldGrowth } from "../../game/world";
+import {
+    getGrowthCompletedEntries,
+    getWorldGrowth,
+} from "../../game/world";
 import {
     createWalkingActivity,
     getUserActivities,
@@ -662,7 +664,7 @@ function RealmPanel({ plan }) {
 
 function GrowthFeed({ plan }) {
     const { t } = useI18n();
-    const completed = getCompletedEntries(plan);
+    const completed = getGrowthCompletedEntries(plan);
     const recent = [...completed].reverse().slice(0, 3);
     const returned = plan.adaptations.some(
         (adaptation) => adaptation.type === "return"
@@ -970,6 +972,7 @@ function WorldPage({
     const [celebration, setCelebration] = useState(false);
     const [danceVariant, setDanceVariant] = useState(0);
     const [notice, setNotice] = useState("");
+    const [growthNotice, setGrowthNotice] = useState("");
     const [dismissedReminderState, setDismissedReminderState] = useState(null);
     const [lastFlowDateKey, setLastFlowDateKey] = useState(flowDateKey);
     const [ecosystemContext, setEcosystemContext] = useState(() => {
@@ -1137,6 +1140,12 @@ function WorldPage({
     }, [notice]);
 
     useEffect(() => {
+        if (!growthNotice) return undefined;
+        const timeout = window.setTimeout(() => setGrowthNotice(""), 5200);
+        return () => window.clearTimeout(timeout);
+    }, [growthNotice]);
+
+    useEffect(() => {
         if (!isReminderState(reengagement.state)) return;
 
         const support = getNotificationSupport();
@@ -1194,6 +1203,22 @@ function WorldPage({
         setCelebration(true);
     };
 
+    const announceGrowth = (nextPlan, previousTotal) => {
+        const nextGrowth = getWorldGrowth(nextPlan);
+
+        if (nextGrowth.total <= previousTotal) return;
+
+        const nextMoment = nextGrowth.next
+            ? ` ${t("world.home.next", {
+                  moment: t(nextGrowth.next.momentKey),
+              })}`
+            : "";
+
+        setGrowthNotice(
+            `${t("world.home.growthReady")}${nextMoment}`
+        );
+    };
+
     const handleComplete = (dayId, slot) => {
         const day = plan.days.find((item) => item.id === dayId);
 
@@ -1210,6 +1235,9 @@ function WorldPage({
         if (!checkin) return;
         const entry = checkin.entry;
         const safe = feedback.safety === "none";
+        const previousGrowthTotal = getWorldGrowth(plan).total;
+
+        setGrowthNotice("");
         const useBackendJourney =
             isBackendJourneyEnabled() &&
             typeof onCompleteJourney === "function";
@@ -1254,23 +1282,27 @@ function WorldPage({
                 .then((result) => {
                     if (!result?.journey?.plan) return;
 
+                    let finalPlan = result.journey.plan;
                     const personalisedPlan =
                         applyWeeklyPersonalisation(
-                            result.journey.plan,
+                            finalPlan,
                             checkin.dayId,
                             checkin.slot
                         );
 
-                    if (personalisedPlan === result.journey.plan) {
-                        return;
+                    if (personalisedPlan !== finalPlan) {
+                        finalPlan = personalisedPlan;
+                        onJourneyChange({
+                            ...result.journey,
+                            plan: finalPlan,
+                            updatedAt: new Date().toISOString(),
+                        });
+                        setNotice(t("world.notice.personalised"));
                     }
 
-                    onJourneyChange({
-                        ...result.journey,
-                        plan: personalisedPlan,
-                        updatedAt: new Date().toISOString(),
-                    });
-                    setNotice(t("world.notice.personalised"));
+                    if (safe) {
+                        announceGrowth(finalPlan, previousGrowthTotal);
+                    }
                 })
                 .catch(() => { });
         } else {
@@ -1300,6 +1332,10 @@ function WorldPage({
 
             if (nextPlan !== beforePersonalisation) {
                 setNotice(t("world.notice.personalised"));
+            }
+
+            if (safe) {
+                announceGrowth(nextPlan, previousGrowthTotal);
             }
         }
 
@@ -1752,6 +1788,16 @@ function WorldPage({
                     {(notice || syncNotice) && (
                         <div className="inline-note" role="status">
                             <p>{notice || syncNotice}</p>
+                        </div>
+                    )}
+
+                    {growthNotice && (
+                        <div
+                            className="inline-note growth-notice"
+                            role="status"
+                            aria-live="polite"
+                        >
+                            <p>{growthNotice}</p>
                         </div>
                     )}
 

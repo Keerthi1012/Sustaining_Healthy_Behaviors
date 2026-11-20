@@ -14,10 +14,13 @@ import LanguageSwitch from "../components/ui/LanguageSwitch";
 import VillageScene from "./VillageScene";
 import OutcomesPanel from "./OutcomesPanel";
 import { useI18n } from "../i18n";
-import { getPlannedEntries } from "../services/planEngine";
 import { loadEcosystemContext } from "../services/ecosystemStore";
 import { getOutcomeMetrics } from "../services/outcomeMetrics";
-import { getWorldGrowth, WORLD_REALMS } from "./world";
+import {
+    getGrowthProgress,
+    getWorldGrowth,
+    WORLD_REALMS,
+} from "./world";
 import { getVillageStorageKey, getLegacyVillageStorageKey } from "./storage";
 import "./AdventurePage.css";
 import "./WorldGamePage.css";
@@ -34,10 +37,10 @@ function WorldGamePage({ journey, user, onExit, onLogout }) {
     const plan = journey?.plan ?? null;
     const planId = plan?.id ?? "journey";
     const growth = getWorldGrowth(plan);
-    const plannedEntries = plan ? getPlannedEntries(plan) : [];
-    const completedPercent = plannedEntries.length
-        ? Math.round((growth.total / plannedEntries.length) * 100)
-        : 0;
+    const growthProgress = plan
+        ? getGrowthProgress(plan)
+        : { completed: 0, planned: 0, percent: 0 };
+    const completedPercent = growthProgress.percent;
     const storedContext = user?.user_id
         ? loadEcosystemContext(user.user_id)
         : null;
@@ -114,7 +117,7 @@ function WorldGamePage({ journey, user, onExit, onLogout }) {
                     <span className="world-growth__count">
                         {t("world.game.stepsCount", {
                             completed: growth.total,
-                            total: plannedEntries.length,
+                            total: growthProgress.planned,
                         })}
                     </span>
                 </div>
@@ -124,8 +127,11 @@ function WorldGamePage({ journey, user, onExit, onLogout }) {
                     role="progressbar"
                     aria-label={t("world.game.level")}
                     aria-valuemin={0}
-                    aria-valuemax={plannedEntries.length || 1}
-                    aria-valuenow={growth.total}
+                    aria-valuemax={growthProgress.planned || 1}
+                    aria-valuenow={Math.min(
+                        growth.total,
+                        growthProgress.planned
+                    )}
                 >
                     <span style={{ width: `${completedPercent}%` }} />
                 </span>

@@ -21,6 +21,7 @@ import {
     shrinkSlot,
 } from "./planEngine";
 import { addDays, toDateKey } from "../utils/date";
+import { setDemoClock } from "./demoClock";
 import { DEFAULT_ECOSYSTEM_CONTEXT } from "./ecosystemStore";
 
 const movementProfile = {
@@ -431,6 +432,32 @@ describe("planEngine", () => {
                 targetSlot: "primary",
             })
         );
+    });
+
+    it("does not treat a fresh plan as lapsed because a demo date is ahead of it", () => {
+        const plan = buildPlan(movementProfile);
+        const futureDemoKey = toDateKey(addDays(new Date(), 5));
+
+        setDemoClock("12:00", futureDemoKey);
+
+        const lapse = getLapseInfo(plan, futureDemoKey);
+
+        expect(lapse.needsReturn).toBe(false);
+        expect(lapse.missedCount).toBe(0);
+        expect(lapse.daysSinceLastComplete).toBe(0);
+    });
+
+    it("still detects a lapse for a backdated plan viewed from a future demo date", () => {
+        const plan = buildPlan(movementProfile, addDays(new Date(), -6));
+        const futureDemoKey = toDateKey(addDays(new Date(), 1));
+
+        setDemoClock("12:00", futureDemoKey);
+
+        const lapse = getLapseInfo(plan, futureDemoKey);
+
+        expect(lapse.needsReturn).toBe(true);
+        expect(lapse.daysSinceLastComplete).toBe(7);
+        expect(lapse.missedCount).toBe(7);
     });
 
     it("adds a second focus to current and future days only", () => {
