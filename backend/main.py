@@ -34,6 +34,32 @@ DEFAULT_DATABASE_PATH = (
     Path(__file__).resolve().parent / "data" / "sproutly.db"
 )
 
+DEFAULT_CORS_ORIGINS = (
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+)
+
+
+def resolve_cors_origins() -> list[str]:
+    """Resolve the exact CORS origins allowed for this deployment.
+
+    Credentials are enabled, so a wildcard origin is never emitted. Empty
+    entries are ignored and the development defaults are kept when the
+    variable is absent or contains no usable origins.
+    """
+
+    raw_origins = os.getenv("CORS_ORIGINS", "")
+    origins: list[str] = []
+
+    for item in raw_origins.split(","):
+        origin = item.strip()
+        if not origin or origin == "*":
+            continue
+        if origin not in origins:
+            origins.append(origin)
+
+    return origins or list(DEFAULT_CORS_ORIGINS)
+
 
 def create_app(
     database_path: str | Path | None = None,
@@ -46,10 +72,7 @@ def create_app(
     )
     application.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://localhost:5173",
-            "http://127.0.0.1:5173",
-        ],
+        allow_origins=resolve_cors_origins(),
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
