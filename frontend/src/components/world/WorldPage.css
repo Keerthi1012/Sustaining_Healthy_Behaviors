@@ -634,8 +634,29 @@
 
 .rest-action-row {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     justify-content: flex-start;
+    gap: var(--space-3);
     margin-block-start: var(--space-3);
+}
+
+.rest-prompt {
+    display: flex;
+    flex: 1 1 12rem;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.rest-prompt strong {
+    color: var(--ink-900);
+    font-size: var(--text-xs);
+}
+
+.rest-prompt span {
+    color: var(--color-text-soft);
+    font-size: var(--text-2xs);
+    line-height: 1.45;
 }
 
 .rest-action {
@@ -648,6 +669,107 @@
 .rest-action:hover:not(:disabled) {
     border-color: var(--moss-500);
     background: var(--color-surface-raised);
+}
+
+.readiness-card {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--moss-50);
+    box-shadow: var(--shadow-xs);
+}
+
+.readiness-card__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.readiness-card__icon {
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: var(--radius-pill);
+    background: var(--moss-100);
+    color: var(--moss-700);
+}
+
+.readiness-card__head h3 {
+    margin: 0;
+    color: var(--ink-900);
+    font-size: var(--text-sm);
+}
+
+.readiness-card__status {
+    display: inline-flex;
+    margin-block-start: var(--space-1);
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    color: var(--moss-700);
+    font-size: var(--text-2xs);
+    font-weight: 700;
+}
+
+.readiness-card__dose {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-3);
+    padding-inline-start: calc(2.1rem + var(--space-3));
+}
+
+.readiness-card__dose-value {
+    color: var(--ink-900);
+    font-size: var(--text-base);
+}
+
+.readiness-card__dose-compare,
+.readiness-card__dose-unchanged {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+}
+
+.readiness-card__notes {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.readiness-card__note {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--moss-100);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    line-height: 1.55;
+}
+
+.readiness-card__note-icon {
+    flex: 0 0 auto;
+    color: var(--moss-600);
+}
+
+.readiness-card__note strong {
+    margin-inline-end: 0.25rem;
+    color: var(--ink-900);
+}
+
+.readiness-card__neutral {
+    margin: 0;
+    color: var(--color-text-soft);
+    font-size: var(--text-xs);
+    line-height: 1.55;
 }
 
 .action-card__done,
@@ -2330,6 +2452,22 @@
     .readiness-summary {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .readiness-card {
+        padding: var(--space-3);
+    }
+
+    .readiness-card__dose {
+        padding-inline-start: 0;
+    }
+
+    .rest-action-row {
+        align-items: flex-start;
+    }
+
+    .rest-prompt {
+        flex-basis: 100%;
     }
 
     .swipe-choice {

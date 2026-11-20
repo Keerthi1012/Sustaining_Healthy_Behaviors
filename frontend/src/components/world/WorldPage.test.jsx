@@ -19,6 +19,7 @@ import userEvent from "@testing-library/user-event";
 import WorldPage from "./WorldPage";
 import {
     addSecondaryGoal,
+    applyReadiness,
     buildPlan,
     completeSlot,
     restSlot,
@@ -207,6 +208,8 @@ describe("Phase C rest action visibility", () => {
 
         expect(rest).toHaveClass("btn", "btn--secondary", "rest-action");
         expect(rest).not.toHaveClass("btn--ghost");
+        expect(screen.getByText(en["world.restPrompt"])).toBeInTheDocument();
+        expect(screen.getByText(en["world.restSupport"])).toBeInTheDocument();
         expect(
             screen.queryByRole("button", { name: /undo/i })
         ).not.toBeInTheDocument();
@@ -244,6 +247,9 @@ describe("Phase C rest action visibility", () => {
         expect(undo).not.toHaveClass("btn--ghost");
         expect(
             screen.queryByRole("button", { name: "Rest" })
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByText(en["world.restPrompt"])
         ).not.toBeInTheDocument();
 
         await tester.click(undo);
@@ -301,6 +307,7 @@ describe("Phase D learning insights on the wellness home", () => {
                                   time: 5,
                                   weather: "hot",
                               },
+                              readinessTag: "hot",
                           },
                       }
                     : day
@@ -439,27 +446,36 @@ describe("Phase D learning insights on the wellness home", () => {
         ["en", en],
         ["ar", ar],
     ])(
-        "renders the localized readiness weather and reason for %s",
+        "renders the localized readiness card for %s",
         (locale, dictionary) => {
             const plan = buildReadinessPlan();
 
             renderWorld(plan, {}, {}, { locale });
 
+            if (locale === "ar") {
+                expect(document.documentElement).toHaveAttribute("dir", "rtl");
+            }
+
+            const card = screen.getByRole("region", {
+                name: dictionary["readiness.adaptationEyebrow"],
+            });
+
             expect(
-                screen.getByText(
-                    interpolate(dictionary["readiness.adapted"], {
+                within(card).getByText(
+                    interpolate(dictionary["readiness.recommendedDose"], {
                         dose: plan.days[0].primary.dose,
-                        energy: dictionary["readiness.energy.low.label"],
-                        weather: dictionary["readiness.weather.hot"],
                     })
                 )
             ).toBeInTheDocument();
             expect(
-                screen.getByText(dictionary["readiness.noAdaptationReason"])
+                within(card).getByText(dictionary["readiness.status.doseReduced"])
             ).toBeInTheDocument();
             expect(
-                screen.queryByText(
-                    /readiness\.weather|readiness\.noAdaptationReason/
+                within(card).getByText(dictionary["readiness.guidance.hot"])
+            ).toBeInTheDocument();
+            expect(
+                within(card).queryByText(
+                    /readiness\.|outcomes\.learning|world\./
                 )
             ).not.toBeInTheDocument();
         }
@@ -1225,6 +1241,330 @@ describe("readiness on the wellness home", () => {
         expect(entry.dose).toBeLessThanOrEqual(2);
         expect(entry.plannedDose).toBe(plan.days[0].primary.dose);
         expect(entry.readinessTag).toBe("low");
+    });
+});
+
+describe("readiness adjustment presentation", () => {
+    beforeEach(() => {
+        window.localStorage.clear();
+    });
+
+    function getCard() {
+        return screen.getByRole("region", {
+            name: en["readiness.adaptationEyebrow"],
+        });
+    }
+
+    it("shows an engine-derived readiness dose reduction", () => {
+        const basePlan = makePlan();
+        const plan = applyReadiness(
+            basePlan,
+            basePlan.days[0].id,
+            "primary",
+            {
+                energy: "low",
+                time: 2,
+                weather: "mild",
+                headspace: "neutral",
+            }
+        );
+        const entry = plan.days[0].primary;
+
+        expect(entry.plannedDose).toBe(basePlan.days[0].primary.dose);
+        expect(entry.dose).toBeLessThan(entry.plannedDose);
+        expect(entry.readinessTag).toBe("low");
+
+        renderWorld(plan);
+
+        const card = getCard();
+
+        expect(card).toHaveClass("readiness-card");
+        expect(
+            within(card).getByText(en["readiness.status.doseReduced"])
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(
+                interpolate(en["readiness.recommendedDose"], {
+                    dose: entry.dose,
+                })
+            )
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(
+                interpolate(en["readiness.planned"], {
+                    dose: entry.plannedDose,
+                })
+            )
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(en["readiness.note.low"])
+        ).toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.status.habitGrowing"])
+        ).not.toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.status.doseChanged"])
+        ).not.toBeInTheDocument();
+    });
+
+    it("keeps a time-only readiness reduction visible without a readiness tag", () => {
+        const basePlan = makePlan();
+        const plan = applyReadiness(
+            basePlan,
+            basePlan.days[0].id,
+            "primary",
+            {
+                energy: "okay",
+                time: 2,
+                weather: "mild",
+                headspace: "neutral",
+            }
+        );
+        const entry = plan.days[0].primary;
+
+        expect(entry.readinessTag).toBeNull();
+        expect(entry.dose).toBeLessThan(entry.plannedDose);
+
+        renderWorld(plan);
+
+        const card = getCard();
+
+        expect(
+            within(card).getByText(en["readiness.status.doseReduced"])
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(
+                interpolate(en["readiness.recommendedDose"], {
+                    dose: entry.dose,
+                })
+            )
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(
+                interpolate(en["readiness.planned"], {
+                    dose: entry.plannedDose,
+                })
+            )
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(en["readiness.note.time"])
+        ).toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.status.contextAdjusted"])
+        ).not.toBeInTheDocument();
+    });
+
+    it("presents one comfortable check-in as habit growth without guidance", () => {
+        let plan = makePlan(4);
+
+        plan = completeSlot(plan, plan.days[0].id, "primary", feedback);
+        const entry = plan.days[1].primary;
+
+        expect(entry.dose).toBeGreaterThan(entry.plannedDose);
+        expect(entry.readinessTag ?? null).toBeNull();
+        expect(entry.adaptationTag ?? null).toBeNull();
+        expect(getLearningSummary(plan).insight.guidance).toBe("steady");
+
+        renderWorld(plan);
+
+        const card = getCard();
+
+        expect(
+            within(card).getByText(en["readiness.status.habitGrowing"])
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(
+                interpolate(en["readiness.recommendedDose"], {
+                    dose: entry.dose,
+                })
+            )
+        ).toBeInTheDocument();
+        expect(
+            within(card).queryByText(
+                interpolate(en["readiness.planned"], {
+                    dose: entry.plannedDose,
+                })
+            )
+        ).not.toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.status.doseReduced"])
+        ).not.toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.status.doseChanged"])
+        ).not.toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.status.contextAdjusted"])
+        ).not.toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.label.readiness"])
+        ).not.toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.label.environment"])
+        ).not.toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.label.progression"])
+        ).not.toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.noAdjustment"])
+        ).not.toBeInTheDocument();
+    });
+
+    it("presents two comfortable check-ins as habit growth with separate progression guidance", () => {
+        let plan = makePlan(4);
+
+        plan = completeSlot(plan, plan.days[0].id, "primary", feedback);
+        plan = completeSlot(plan, plan.days[1].id, "primary", feedback);
+        const entry = plan.days[2].primary;
+
+        expect(entry.dose).toBeGreaterThan(entry.plannedDose);
+        expect(entry.readinessTag ?? null).toBeNull();
+        expect(entry.adaptationTag ?? null).toBeNull();
+        expect(getLearningSummary(plan).insight.guidance).toBe("increase");
+
+        renderWorld(plan);
+
+        const card = getCard();
+
+        expect(
+            within(card).getByText(en["readiness.status.habitGrowing"])
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(
+                interpolate(en["readiness.recommendedDose"], {
+                    dose: entry.dose,
+                })
+            )
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(en["readiness.label.progression"])
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(en["outcomes.learning.guidance.increase"])
+        ).toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.status.doseChanged"])
+        ).not.toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.noAdjustment"])
+        ).not.toBeInTheDocument();
+    });
+
+    it("keeps a genuine context-only adjustment separate from dose changes", () => {
+        const sourcePlan = buildPlan(profile, addDays(new Date(), -5), {
+            ecosystemContext: getSampleAbuDhabiProfile("desk_heat"),
+        });
+        const plan = { ...sourcePlan, days: sourcePlan.days.slice(0, 3) };
+        const entry = plan.days[0].primary;
+
+        expect(entry.adaptationTag).toBe("indoor_heat_safe");
+        expect(entry.plannedDose).toBe(entry.dose);
+
+        renderWorld(plan);
+
+        const card = getCard();
+
+        expect(
+            within(card).getByText(en["readiness.status.contextAdjusted"])
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(
+                interpolate(en["readiness.doseUnchanged"], {
+                    dose: entry.dose,
+                })
+            )
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(
+                en["readiness.guidance.context.indoor_heat_safe"]
+            )
+        ).toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.status.doseReduced"])
+        ).not.toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.status.habitGrowing"])
+        ).not.toBeInTheDocument();
+    });
+
+    it("keeps one environment explanation for heat plus indoor_heat_safe", () => {
+        const sourcePlan = buildPlan(profile, addDays(new Date(), -5), {
+            ecosystemContext: getSampleAbuDhabiProfile("desk_heat"),
+        });
+        const basePlan = { ...sourcePlan, days: sourcePlan.days.slice(0, 3) };
+        const plan = applyReadiness(
+            basePlan,
+            basePlan.days[0].id,
+            "primary",
+            {
+                energy: "okay",
+                time: 10,
+                weather: "hot",
+                headspace: "neutral",
+            }
+        );
+        const entry = plan.days[0].primary;
+
+        expect(entry.readinessTag).toBe("hot");
+        expect(entry.adaptationTag).toBe("indoor_heat_safe");
+        expect(entry.plannedDose).toBe(entry.dose);
+
+        renderWorld(plan);
+
+        const card = getCard();
+
+        expect(
+            within(card).getByText(en["readiness.status.contextAdjusted"])
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(en["readiness.guidance.hot"])
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(
+                interpolate(en["readiness.doseUnchanged"], {
+                    dose: entry.dose,
+                })
+            )
+        ).toBeInTheDocument();
+        expect(
+            within(card).queryByText(
+                en["readiness.guidance.context.indoor_heat_safe"]
+            )
+        ).not.toBeInTheDocument();
+        expect(
+            within(card).queryAllByText(en["readiness.label.environment"])
+        ).toHaveLength(1);
+    });
+
+    it("shows a neutral state when no adjustment is supported", () => {
+        const plan = makePlan();
+
+        renderWorld(plan);
+
+        const card = getCard();
+
+        expect(card.querySelector(".readiness-card__status")).toBeNull();
+        expect(
+            within(card).getByText(en["readiness.noAdjustment"])
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(
+                interpolate(en["readiness.recommendedDose"], {
+                    dose: plan.days[0].primary.dose,
+                })
+            )
+        ).toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.status.habitGrowing"])
+        ).not.toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.label.readiness"])
+        ).not.toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.label.environment"])
+        ).not.toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["readiness.label.progression"])
+        ).not.toBeInTheDocument();
     });
 });
 

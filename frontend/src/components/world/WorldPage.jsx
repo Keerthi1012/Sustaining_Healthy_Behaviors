@@ -7,6 +7,7 @@ import {
     Check,
     Clock,
     Footprints,
+    HeartPulse,
     MapPin,
     Moon,
     PauseCircle,
@@ -14,7 +15,9 @@ import {
     Settings,
     ShieldAlert,
     Sprout,
+    Sun,
     Sunrise,
+    TrendingUp,
     Wind,
 } from "lucide-react";
 
@@ -144,6 +147,19 @@ const BARRIER_KEYS = {
     "I lost motivation": "checkin.barrier.motivation",
     "Family or work demands": "checkin.barrier.demands",
     "Discomfort or pain": "checkin.barrier.pain",
+};
+
+const READINESS_ENVIRONMENT_KEYS = {
+    hot: "readiness.guidance.hot",
+    rainy: "readiness.guidance.rainy",
+    cold: "readiness.guidance.cold",
+};
+
+const ECOSYSTEM_GUIDANCE_KEYS = {
+    indoor_heat_safe: "readiness.guidance.context.indoor_heat_safe",
+    shift_aligned: "readiness.guidance.context.shift_aligned",
+    fasting_aligned: "readiness.guidance.context.fasting_aligned",
+    mobility_adapted: "readiness.guidance.context.mobility_adapted",
 };
 
 function getRealmStats(plan, goalId) {
@@ -691,6 +707,149 @@ function GrowthFeed({ plan }) {
             </ul>
 
             <p className="growth-card__note">{t("world.growthFeed.note")}</p>
+        </section>
+    );
+}
+
+function ReadinessAdjustmentCard({ entry, learning }) {
+    const { t } = useI18n();
+
+    const plannedDose = Number(entry?.plannedDose ?? entry?.dose);
+    const dose = Number(entry?.dose ?? entry?.plannedDose);
+    const hasDoseValues = Number.isFinite(plannedDose) && Number.isFinite(dose);
+    const doseIncreased = hasDoseValues && dose > plannedDose;
+    const doseReduced = hasDoseValues && dose < plannedDose;
+    const hasDoseChange = doseIncreased || doseReduced;
+    const readinessTag = entry?.readinessTag ?? null;
+    const adaptationTag = entry?.adaptationTag ?? null;
+    const hasContextAdjustment = Boolean(readinessTag || adaptationTag);
+
+    const statusKey = doseIncreased
+        ? "readiness.status.habitGrowing"
+        : doseReduced
+          ? "readiness.status.doseReduced"
+          : hasContextAdjustment
+            ? "readiness.status.contextAdjusted"
+            : null;
+
+    const notes = [];
+
+    if (!doseIncreased) {
+        if (readinessTag === "low") {
+            notes.push({
+                key: "readiness",
+                icon: HeartPulse,
+                label: t("readiness.label.readiness"),
+                text: t("readiness.note.low"),
+            });
+        } else if (!readinessTag && entry?.readiness && doseReduced) {
+            notes.push({
+                key: "readiness",
+                icon: HeartPulse,
+                label: t("readiness.label.readiness"),
+                text: t("readiness.note.time"),
+            });
+        }
+    }
+
+    const environmentKey =
+        !doseIncreased &&
+        (READINESS_ENVIRONMENT_KEYS[readinessTag] ??
+            (adaptationTag &&
+            !(readinessTag === "hot" && adaptationTag === "indoor_heat_safe")
+                ? ECOSYSTEM_GUIDANCE_KEYS[adaptationTag]
+                : null));
+
+    if (environmentKey) {
+        notes.push({
+            key: "environment",
+            icon: Sun,
+            label: t("readiness.label.environment"),
+            text: t(environmentKey),
+        });
+    }
+
+    const insight = learning?.insight;
+
+    if (
+        insight?.hasData &&
+        insight.guidance === "increase" &&
+        entry?.domain === "movement"
+    ) {
+        notes.push({
+            key: "progression",
+            icon: TrendingUp,
+            label: t("readiness.label.progression"),
+            text: t("outcomes.learning.guidance.increase"),
+        });
+    }
+
+    return (
+        <section
+            className="readiness-card"
+            aria-labelledby="readiness-adjustment-title"
+        >
+            <header className="readiness-card__head">
+                <span className="readiness-card__icon" aria-hidden="true">
+                    <HeartPulse size={18} />
+                </span>
+                <div>
+                    <h3 id="readiness-adjustment-title">
+                        {t("readiness.adaptationEyebrow")}
+                    </h3>
+                    {statusKey && (
+                        <span className="readiness-card__status">
+                            {t(statusKey)}
+                        </span>
+                    )}
+                </div>
+            </header>
+
+            <div className="readiness-card__dose">
+                <strong className="readiness-card__dose-value">
+                    {t("readiness.recommendedDose", { dose })}
+                </strong>
+                {doseReduced ? (
+                    <span className="readiness-card__dose-compare">
+                        {t("readiness.planned", { dose: plannedDose })}
+                    </span>
+                ) : doseIncreased ? null : (
+                    <span className="readiness-card__dose-unchanged">
+                        {t("readiness.doseUnchanged", { dose })}
+                    </span>
+                )}
+            </div>
+
+            {notes.length > 0 && (
+                <ul className="readiness-card__notes">
+                    {notes.map((note) => {
+                        const NoteIcon = note.icon;
+
+                        return (
+                            <li
+                                className="readiness-card__note"
+                                key={note.key}
+                            >
+                                <span
+                                    className="readiness-card__note-icon"
+                                    aria-hidden="true"
+                                >
+                                    <NoteIcon size={15} />
+                                </span>
+                                <span>
+                                    <strong>{note.label}</strong> {note.text}
+                                </span>
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
+
+            {!hasDoseChange && !hasContextAdjustment && (
+                <p className="readiness-card__neutral">
+                    {t("readiness.noAdjustment")}
+                </p>
+            )}
         </section>
     );
 }
@@ -1994,6 +2153,16 @@ function WorldPage({
 
                                     {restAction && (
                                         <div className="rest-action-row">
+                                            {restAction === "rest" && (
+                                                <div className="rest-prompt">
+                                                    <strong>
+                                                        {t("world.restPrompt")}
+                                                    </strong>
+                                                    <span>
+                                                        {t("world.restSupport")}
+                                                    </span>
+                                                </div>
+                                            )}
                                             <button
                                                 className="btn btn--secondary rest-action"
                                                 type="button"
@@ -2029,56 +2198,19 @@ function WorldPage({
                                         </div>
                                     )}
 
-                                                    {/** Readiness panel — compact, coherent presentation */}
-                                                    {currentDay && currentDay.primary && (
-                                                        <>
-                                                            {currentDay.primary.adaptedByReadiness && (
-                                                                <div className="readiness-adaptation">
-                                                                    <p className="readiness-adaptation__eyebrow">
-                                                                        {t("readiness.adaptationEyebrow")}
-                                                                    </p>
-                                                                    <p className="readiness-adaptation__row">
-                                                                        <span>
-                                                                            {t("readiness.planned", {
-                                                                                dose: currentDay.primary.plannedDose,
-                                                                        })}</span>
-                                                                        <span className="readiness-adaptation__separator">•</span>
-                                                                        <span>
-                                                                            {t("readiness.adapted", {
-                                                                                dose: currentDay.primary.dose,
-                                                                                energy: t(
-                                                                                    `readiness.energy.${currentDay.primary.readiness?.energy
-                                                                                        ?.toLowerCase() ||
-                                                        "okay"}.label`),
-                                                                                weather: t(
-                                                                                    `readiness.weather.${currentDay.primary.readiness?.weather
-                                                        ?.toLowerCase() ||
-                                                        "mild"}`),
-                                                                            })}</span>
-                                                                </p>
-                                                                    <p className="readiness-adaptation__reason">
-                                                                        {currentDay.primary.readinessWhy
-                                                                            ? t("readiness.adaptationReason", {
-                                                                                reason: currentDay.primary.readinessWhy,
-                                                                            })
-                                                                            : t("readiness.noAdaptationReason")}
-                                                                    </p>
-                                                                </div>
-                                                            )}
+                                    {currentDay && currentDay.primary && (
+                                        <>
+                                            <ReadinessAdjustmentCard
+                                                entry={currentDay.primary}
+                                                learning={outcomeMetrics.learning}
+                                            />
+                                            <LearningInsightsCard
+                                                learning={outcomeMetrics.learning}
+                                            />
+                                        </>
+                                    )}
 
-                                                            {!currentDay.primary.adaptedByReadiness && (
-                                                                <p className="readiness-adaptation__noChange">
-                                                                    {t("readiness.noAdaptation")}
-                                                              </p>
-                                                          )}
-
-                                                          <LearningInsightsCard
-                                                              learning={
-                                                                  outcomeMetrics.learning
-                                                              }
-                                                          />
-                                                      </>
-                                                    )}                                    {currentDay &&
+                                    {currentDay &&
                                         !optionalStep &&
                                         !plan.secondaryGoalId && (
                                             <AddFocusCard

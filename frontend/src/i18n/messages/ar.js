@@ -307,11 +307,40 @@ export default {
     "readiness.adaptationReason": "بسبب {reason}",
     "readiness.noAdaptation": "النشاط كما هو مخطط",
     "readiness.noAdaptationReason": "لم يُسجّل سبب محدد.",
+    "readiness.recommendedDose": "الجرعة الموصى بها: {dose} دقيقة",
+    "readiness.doseUnchanged": "الجرعة لم تتغير: {dose} دقيقة",
+    "readiness.noAdjustment": "لا يوجد ضبط مطلوب اليوم.",
+    "readiness.status.doseReduced": "تقليل الجرعة",
+    "readiness.status.habitGrowing": "العادة تنمو",
+    "readiness.status.doseChanged": "تغيير الجرعة",
+    "readiness.status.contextAdjusted": "تعديل السياق",
+    "readiness.label.readiness": "الجاهزية",
+    "readiness.label.environment": "البيئة",
+    "readiness.label.progression": "التقدّم التدريجي",
+    "readiness.note.low":
+        "ضُبطت خطوة اليوم على طاقتك ووقتك الحاليين.",
+    "readiness.note.time": "تناسب خطوة اليوم الوقت الذي اخترته.",
+    "readiness.guidance.hot":
+        "بقيت خطوة اليوم في الداخل أو الظل بسبب الحرارة.",
+    "readiness.guidance.rainy":
+        "بقيت خطوة اليوم في الداخل أو تحت غطاء بسبب المطر.",
+    "readiness.guidance.cold":
+        "بقيت خطوة اليوم دافئة ومحمية بسبب البرد.",
+    "readiness.guidance.context.indoor_heat_safe":
+        "الحركة داخل المبنى تحافظ على الأمان في الحرارة الشديدة وتظل محسوبة كحركة.",
+    "readiness.guidance.context.shift_aligned":
+        "ربطنا هذه الإشارة بجدول المناوبات بدلًا من وقت ليلي ثابت.",
+    "readiness.guidance.context.fasting_aligned":
+        "وضعنا هذه الإشارة في نافذة غير صيام لدعم روتينك دون التداخل مع الصيام.",
+    "readiness.guidance.context.mobility_adapted":
+        "هذه النسخة تحافظ على حركة لطيفة منخفضة الأثر مع دعم قريب.",
     "world.rest": "راحة",
     "world.rested": "مستريح",
     "world.rested.notice": "هذه الخطوة مستريح الآن. لن يتم احتسابها في التقدّم.",
     "world.rested.undone": "إلغاء الراحة. تعود هذه الخطوة إلى التخطيط.",
     "world.undoRest": "إلغاء الراحة",
+    "world.restPrompt": "هل تحتاج إلى استراحة؟",
+    "world.restSupport": "لا بأس بالراحة اليوم. تقدّمك محفوظ.",
     "world.iDidIt": "فعلتها",
     "world.somethingSmaller": "شيء أصغر",
     "world.whyThis": "لماذا هذه؟",

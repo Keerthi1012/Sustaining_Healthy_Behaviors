@@ -318,11 +318,40 @@ export default {
     "readiness.adaptationReason": "due to {reason}",
     "readiness.noAdaptation": "Activity as planned",
     "readiness.noAdaptationReason": "No specific reason recorded.",
+    "readiness.recommendedDose": "Recommended dose: {dose} min",
+    "readiness.doseUnchanged": "Dose unchanged: {dose} min",
+    "readiness.noAdjustment": "No adjustment needed today.",
+    "readiness.status.doseReduced": "Dose reduced",
+    "readiness.status.habitGrowing": "Habit growing",
+    "readiness.status.doseChanged": "Dose changed",
+    "readiness.status.contextAdjusted": "Context adjusted",
+    "readiness.label.readiness": "Readiness",
+    "readiness.label.environment": "Environment",
+    "readiness.label.progression": "Gradual progression",
+    "readiness.note.low":
+        "Your step is set to your current energy and time.",
+    "readiness.note.time": "Your step fits the time you chose for today.",
+    "readiness.guidance.hot":
+        "Today's step stays indoors or in shade because of the heat.",
+    "readiness.guidance.rainy":
+        "Today's step stays indoors or under cover because of the rain.",
+    "readiness.guidance.cold":
+        "Today's step stays warm and covered because of the cold.",
+    "readiness.guidance.context.indoor_heat_safe":
+        "Indoor movement keeps the effort safe in extreme heat while still counting.",
+    "readiness.guidance.context.shift_aligned":
+        "This cue is aligned to a shift schedule instead of a fixed night-time clock.",
+    "readiness.guidance.context.fasting_aligned":
+        "This cue sits in a non-fasting window, so it supports your routine without interfering with fasting.",
+    "readiness.guidance.context.mobility_adapted":
+        "This version keeps movement low-impact, with support close by.",
     "world.rest": "Rest",
     "world.rested": "Rested",
     "world.rested.notice": "This step is now rested. It will not count toward progress.",
     "world.rested.undone": "Rest undone. This step returns to planning.",
     "world.undoRest": "Undo Rest",
+    "world.restPrompt": "Need a break?",
+    "world.restSupport": "It's okay to rest today. Your progress is preserved.",
     "world.iDidIt": "I did it",
     "world.somethingSmaller": "Something smaller",
     "world.whyThis": "Why this?",
