@@ -20,6 +20,8 @@ from app.repositories.journey_repository import (
 )
 from app.services.journey_service import (
     JourneyService,
+    JourneySimulationMismatchError,
+    JourneySimulationNotAllowedError,
     JourneySlotNotFoundError,
     JourneySlotResolvedError,
 )
@@ -140,6 +142,16 @@ def complete_current_journey_slot(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="That journey step is no longer planned.",
+        ) from exc
+    except JourneySimulationNotAllowedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Demo date simulation is disabled on this server.",
+        ) from exc
+    except JourneySimulationMismatchError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Demo date must match the selected journey day.",
         ) from exc
     except JourneyRevisionConflictError as exc:
         raise HTTPException(

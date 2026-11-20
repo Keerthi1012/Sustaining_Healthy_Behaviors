@@ -47,17 +47,18 @@ function parseTimestamp(value) {
     return Number.isFinite(timestamp) ? timestamp : null;
 }
 
-export function getOpenMoments(plan, now = new Date()) {
+export function getOpenMoments(plan, now = new Date(), dateKey = null) {
     if (!plan || !Array.isArray(plan.days)) return [];
 
-    const todayKey = toDateKey(now);
+    const todayKey = dateKey ?? toDateKey(now);
     const moments = [];
 
     plan.days.forEach((day) => {
         if (
             !day ||
             typeof day.date !== "string" ||
-            day.date > todayKey
+            day.date > todayKey ||
+            (dateKey && day.date !== dateKey)
         ) {
             return;
         }
@@ -90,12 +91,12 @@ export function getOpenMoments(plan, now = new Date()) {
     );
 }
 
-export function getCompletedDomainsToday(plan, now = new Date()) {
+export function getCompletedDomainsToday(plan, now = new Date(), dateKey = null) {
     const completed = new Set();
 
     if (!plan || !Array.isArray(plan.days)) return completed;
 
-    const todayKey = toDateKey(now);
+    const todayKey = dateKey ?? toDateKey(now);
 
     plan.days.forEach((day) => {
         if (!day || day.date !== todayKey) return;
@@ -170,6 +171,7 @@ export function getNudgeDecision({
     sentCountToday = 0,
     snoozedUntil = null,
     quietHours,
+    dateKey = null,
 } = {}) {
     if (!enabled) {
         return rejection(NUDGE_REASONS.DISABLED);
@@ -203,13 +205,17 @@ export function getNudgeDecision({
         return rejection(NUDGE_REASONS.DAILY_CAP);
     }
 
-    const moments = getOpenMoments(plan, now);
+    const moments = getOpenMoments(plan, now, dateKey);
 
     if (!moments.length) {
         return rejection(NUDGE_REASONS.NO_OPEN_MOMENT);
     }
 
-    const completedDomains = getCompletedDomainsToday(plan, now);
+    const completedDomains = getCompletedDomainsToday(
+        plan,
+        now,
+        dateKey
+    );
     const candidates = [];
     let sawCooldown = false;
 

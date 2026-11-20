@@ -3,6 +3,7 @@ import {
     Apple,
     BarChart3,
     Bell,
+    BookOpen,
     Check,
     Clock,
     Footprints,
@@ -45,9 +46,11 @@ import {
     getCompletedEntries,
     getDayResolution,
     getLapseInfo,
+    getPlanSlots,
     getOptionalActionableStep,
     getPlanProgress,
     isDayResolved,
+    isSlotResolved,
     getPlannedEntries,
     getProgressionStep,
     shrinkSlot,
@@ -73,7 +76,12 @@ import {
     getSchedulePreset,
     resolveJourneySchedule,
 } from "../../services/realmSchedule";
-import { getDemoClock } from "../../services/demoClock";
+import {
+    getDemoClock,
+    getDemoDateKey,
+    getNow,
+    subscribeDemoClock,
+} from "../../services/demoClock";
 import {
     getMoodEntry,
     getMoodOption,
@@ -126,6 +134,16 @@ const READINESS_TIME_KEYS = {
     2: "readiness.time.two",
     5: "readiness.time.five",
     10: "readiness.time.ten",
+};
+
+const BARRIER_KEYS = {
+    "Nothing in particular": "checkin.barrier.none",
+    "Not enough time": "checkin.barrier.time",
+    "Low energy": "checkin.barrier.energy",
+    "Hot weather": "checkin.barrier.hotWeather",
+    "I lost motivation": "checkin.barrier.motivation",
+    "Family or work demands": "checkin.barrier.demands",
+    "Discomfort or pain": "checkin.barrier.pain",
 };
 
 function getRealmStats(plan, goalId) {
@@ -402,6 +420,143 @@ function AddFocusCard({ goal, onAdd }) {
     );
 }
 
+function DemoDayStateCard({ status }) {
+    const { t } = useI18n();
+    const statusIcons = {
+        completed: Check,
+        rested: Moon,
+        paused: ShieldAlert,
+        empty: Sprout,
+        missing: Clock,
+    };
+    const Icon = statusIcons[status] ?? Sprout;
+
+    return (
+        <article
+            className={`card demo-day-state demo-day-state--${status}`}
+            role="status"
+        >
+            <span className="demo-day-state__icon" aria-hidden="true">
+                <Icon size={20} />
+            </span>
+            <div>
+                <p className="eyebrow">
+                    {t("world.demoDayState.eyebrow")}
+                </p>
+                <h2>{t(`world.demoDayState.${status}.title`)}</h2>
+                <p>{t(`world.demoDayState.${status}.body`)}</p>
+            </div>
+        </article>
+    );
+}
+
+function LearningInsightsCard({ learning }) {
+    const { t, locale } = useI18n();
+    const insight = learning?.insight;
+    const actions = learning?.actions ?? [];
+
+    if (!insight) return null;
+
+    const topAction = insight.topAction
+        ? getExerciseContent(
+              {
+                  id: insight.topAction.actionId,
+                  domain: insight.topAction.domain,
+                  title: insight.topAction.title,
+              },
+              locale
+          )
+        : null;
+    const barrierLabel = insight.topBarrier
+        ? t(
+              BARRIER_KEYS[insight.topBarrier.barrier] ??
+                  insight.topBarrier.barrier
+          )
+        : null;
+
+    return (
+        <section
+            className="learning-insights"
+            aria-labelledby="learning-insights-title"
+        >
+            <header className="learning-insights__head">
+                <span className="learning-insights__icon" aria-hidden="true">
+                    <BookOpen size={18} />
+                </span>
+                <div>
+                    <h3 id="learning-insights-title">
+                        {t("outcomes.learning.title")}
+                    </h3>
+                    <p className="learning-insights__lead">
+                        {insight.hasData
+                            ? t("outcomes.learning.lead", {
+                                  count: insight.totalResolved,
+                              })
+                            : t("outcomes.learning.empty")}
+                    </p>
+                </div>
+            </header>
+
+            {insight.hasData ? (
+                <>
+                    <dl className="learning-insights__metrics">
+                        <div>
+                            <dt>{t("outcomes.learning.sample")}</dt>
+                            <dd>{insight.sampleSize}</dd>
+                        </div>
+                        <div>
+                            <dt>{t("outcomes.learning.steps")}</dt>
+                            <dd>{actions.length}</dd>
+                        </div>
+                        <div>
+                            <dt>{t("outcomes.learning.comfort")}</dt>
+                            <dd>{insight.comfortRate}%</dd>
+                        </div>
+                    </dl>
+                    <ul className="learning-insights__list">
+                        <li>
+                            {insight.topAction?.effective > 0
+                                ? t("outcomes.learning.action", {
+                                      action:
+                                          topAction?.title ??
+                                          insight.topAction.actionId,
+                                      count: insight.topAction.effective,
+                                  })
+                                : t("outcomes.learning.noComfort")}
+                        </li>
+                        {insight.topBarrier && (
+                            <li>
+                                {t("outcomes.learning.barrier", {
+                                    barrier: barrierLabel,
+                                    count: insight.topBarrier.count,
+                                })}
+                            </li>
+                        )}
+                        <li>
+                            {insight.safetyPauses
+                                ? t("outcomes.learning.safety", {
+                                      count: insight.safetyPauses,
+                                  })
+                                : t("outcomes.learning.safetyNone")}
+                        </li>
+                    </ul>
+                    <p className="learning-insights__guidance">
+                        {t(
+                            `outcomes.learning.guidance.${insight.guidance}`
+                        )}
+                    </p>
+                </>
+            ) : null}
+
+            <p className="learning-insights__limit">
+                {t("outcomes.learning.limit", {
+                    count: insight.totalResolved,
+                })}
+            </p>
+        </section>
+    );
+}
+
 function RealmPanel({ plan }) {
     const { t } = useI18n();
     const movement = getRealmStats(plan, "movement");
@@ -556,16 +711,72 @@ function WorldPage({
     const profile = journey.profile;
     const preferences = journey.preferences ?? {};
     const todayKey = String(toDateKey());
-    const currentDay = getActionableDay(plan);
-    const optionalStep = getOptionalActionableStep(plan);
-    const primaryDayIndex = getActionableDayIndex(plan);
-    const currentDayIndex = currentDay
-        ? primaryDayIndex
-        : optionalStep?.index ?? -1;
-    const activeDay = currentDay ?? optionalStep?.day ?? null;
+    const demoDateKey = getDemoDateKey();
+    const flowDateKey = demoDateKey ?? todayKey;
+    const planDays = plan.days ?? [];
+    const demoDayIndex = demoDateKey
+        ? planDays.findIndex((day) => day.date === demoDateKey)
+        : -1;
+    const demoFocusedDay = demoDayIndex >= 0 ? planDays[demoDayIndex] : null;
+    const actionableDay = getActionableDay(plan);
+    const actionableIndex = getActionableDayIndex(plan);
+    const actionableOptionalStep = getOptionalActionableStep(plan);
+
+    const currentDay = demoDateKey
+        ? demoFocusedDay?.primary &&
+          !isSlotResolved(demoFocusedDay.primary)
+            ? demoFocusedDay
+            : null
+        : actionableDay;
+    const restFocusDay = demoDateKey ? demoFocusedDay : currentDay;
+    const restFocusStatus = restFocusDay?.primary?.status ?? null;
+    const restAction =
+        restFocusStatus === "rested"
+            ? "undo"
+            : restFocusStatus === "planned"
+              ? "rest"
+              : null;
+    const optionalStep = demoDateKey
+        ? demoFocusedDay?.secondary &&
+          !isSlotResolved(demoFocusedDay.secondary)
+            ? {
+                  day: demoFocusedDay,
+                  entry: demoFocusedDay.secondary,
+                  index: demoDayIndex,
+                  slot: "secondary",
+              }
+            : null
+        : actionableOptionalStep;
+    const currentDayIndex = demoDateKey
+        ? demoDayIndex
+        : currentDay
+          ? actionableIndex
+          : optionalStep?.index ?? -1;
+    const activeDay = demoDateKey
+        ? demoFocusedDay
+        : currentDay ?? optionalStep?.day ?? null;
     const dayResolution = getDayResolution(activeDay);
-    const lapse = getLapseInfo(plan, todayKey);
-    const reengagement = getReengagementState(plan, todayKey);
+    const demoDayStatuses = demoFocusedDay
+        ? getPlanSlots(demoFocusedDay).map(
+              (slot) => demoFocusedDay[slot]?.status
+          )
+        : [];
+    const demoDayState = !demoDateKey
+        ? null
+        : !demoFocusedDay
+          ? "missing"
+          : plan.safetyPause || demoDayStatuses.includes("paused")
+            ? "paused"
+            : demoDayStatuses.includes("rested")
+              ? "rested"
+              : demoDayStatuses.length === 0
+                ? "empty"
+                : "completed";
+    const showDemoDayState = Boolean(
+        demoDateKey && !currentDay && !optionalStep
+    );
+    const lapse = getLapseInfo(plan, flowDateKey);
+    const reengagement = getReengagementState(plan, flowDateKey);
     const reminderSupport = getNotificationSupport();
 
     // 👉 MOVED readinessTargetEntry HERE so hooks can read it
@@ -591,15 +802,17 @@ function WorldPage({
     const [checkin, setCheckin] = useState(null);
     const [readinessTarget, setReadinessTarget] = useState(null);
     const [sheet, setSheet] = useState(() =>
-        user?.user_id && !isArrivalDone(user.user_id, todayKey)
+        user?.user_id && !isArrivalDone(user.user_id, flowDateKey)
             ? "mood"
             : null
     );
+    const [demoClock, setDemoClock] = useState(() => getDemoClock());
     const [whyEntry, setWhyEntry] = useState(null);
     const [celebration, setCelebration] = useState(false);
     const [danceVariant, setDanceVariant] = useState(0);
     const [notice, setNotice] = useState("");
     const [dismissedReminderState, setDismissedReminderState] = useState(null);
+    const [lastFlowDateKey, setLastFlowDateKey] = useState(flowDateKey);
     const [ecosystemContext, setEcosystemContext] = useState(() => {
         const stored = user?.user_id
             ? loadEcosystemContext(user.user_id)
@@ -613,6 +826,27 @@ function WorldPage({
             loadEcosystemContext()
         );
     });
+
+    if (lastFlowDateKey !== flowDateKey) {
+        setLastFlowDateKey(flowDateKey);
+        setCheckin(null);
+        setReadinessTarget(null);
+        setWhyEntry(null);
+        setNotice("");
+        setSheet(
+            user?.user_id && !isArrivalDone(user.user_id, flowDateKey)
+                ? "mood"
+                : null
+        );
+    }
+
+    useEffect(
+        () =>
+            subscribeDemoClock(() => {
+                setDemoClock(getDemoClock());
+            }),
+        []
+    );
 
     const reminderDecision = useMemo(
         () =>
@@ -653,11 +887,12 @@ function WorldPage({
         schedule,
         enabled: nudgesEnabled,
     });
-    const demoClock = getDemoClock();
-    const moodToday = getMoodEntry(user?.user_id, todayKey);
+    const simulatedAt = demoClock ? getNow().toISOString() : null;
+    const moodToday = getMoodEntry(user?.user_id, flowDateKey);
     const moodOption = moodToday
         ? getMoodOption(moodToday.mood)
         : null;
+
     const worldGrowth = useMemo(() => getWorldGrowth(plan), [plan]);
     const suggestedSecond = AVAILABLE_GOALS.find(
         (goal) =>
@@ -841,6 +1076,7 @@ function WorldPage({
                     useBackendJourney ||
                     useBackendProgression,
                 deferProgression: useBackendJourney,
+                now: simulatedAt,
             }
         );
 
@@ -854,6 +1090,7 @@ function WorldPage({
                 slot: checkin.slot,
                 feedback,
                 idempotencyKey: createIdempotencyKey(),
+                simulatedAt,
             })
                 .then((result) => {
                     if (!result?.journey?.plan) return;
@@ -907,6 +1144,8 @@ function WorldPage({
             }
         }
 
+        dismissNudge();
+
         if (
             entry.domain === "movement" &&
             feedback.safety === "none"
@@ -959,7 +1198,9 @@ function WorldPage({
     const handleApplyArrival = ({ mood, time, weather, readiness }) => {
         if (!user?.user_id) return;
 
-        saveMoodEntry(user.user_id, mood);
+        const arrivalNow = getNow();
+
+        saveMoodEntry(user.user_id, mood, arrivalNow);
 
         const target = readinessTargetEntry;
         let beforeDose = null;
@@ -989,6 +1230,7 @@ function WorldPage({
             mood,
             time,
             weather,
+            date: flowDateKey,
             applied: target
                 ? {
                       dayId: target.dayId,
@@ -997,7 +1239,7 @@ function WorldPage({
                       afterDose,
                   }
                 : null,
-        });
+        }, arrivalNow);
 
         setSheet(null);
         setNotice(
@@ -1006,7 +1248,11 @@ function WorldPage({
     };
 
     const handleSkipArrival = () => {
-        saveArrivalEntry(user?.user_id, { skipped: true });
+        saveArrivalEntry(
+            user?.user_id,
+            { skipped: true, date: flowDateKey },
+            getNow()
+        );
         setSheet(null);
     };
 
@@ -1106,19 +1352,22 @@ function WorldPage({
         toDateKey(previousDayCompletedAt) === todayKey;
     const dayFinished = dayResolution.complete || justCompletedDay;
     const dayNote = carriedOver ? t("world.dayNote") : "";
-    const dayStatus =
-        dayResolution.resolved > 0
-            ? t("world.dayStatusDone", {
+    const dayStatus = showDemoDayState
+        ? t(`world.demoDayState.${demoDayState}.label`)
+        : dayResolution.resolved > 0
+          ? t("world.dayStatusDone", {
                 resolved: dayResolution.resolved,
                 total: dayResolution.total,
             })
-            : t("world.dayStatusProgress");
-    const questTitle =
-        currentDay && optionalStep
-            ? t("world.quest.two")
-            : currentDay
-                ? t("world.quest.one")
-                : t("world.quest.optional");
+          : t("world.dayStatusProgress");
+    const questTitle = showDemoDayState
+        ? t(`world.demoDayState.${demoDayState}.label`)
+        : currentDay && optionalStep
+          ? t("world.quest.two")
+          : currentDay
+            ? t("world.quest.one")
+            : t("world.quest.optional");
+    const showQuest = Boolean(currentDay || optionalStep || demoDateKey);
     const optionalDayNumber =
         optionalStep && optionalStep.index !== currentDayIndex
             ? optionalStep.index + 1
@@ -1181,29 +1430,63 @@ function WorldPage({
                     </button>
                     <LanguageSwitch />
                     <button
-                        className="icon-button"
+                        className={`demo-journey-entry ${
+                            demoDateKey
+                                ? "demo-journey-entry--active"
+                                : ""
+                        }`}
                         type="button"
                         onClick={() => setSheet("demoClock")}
                         aria-label={
-                            demoClock
-                                ? t("demoClock.openActive", {
+                            demoClock && demoDayIndex >= 0
+                                ? t("demoClock.openActiveDay", {
+                                      day: demoDayIndex + 1,
+                                      date: demoDateKey,
                                       time: demoClock.time,
                                   })
-                                : t("demoClock.open")
+                                : demoClock && demoDateKey
+                                  ? t("demoClock.openActiveDate", {
+                                        date: demoDateKey,
+                                        time: demoClock.time,
+                                    })
+                                  : demoClock
+                                    ? t("demoClock.openActive", {
+                                          time: demoClock.time,
+                                      })
+                                    : t("demoClock.open")
                         }
                     >
                         <Clock size={18} aria-hidden="true" />
-                    </button>
-                    {demoClock && (
-                        <span
-                            className="demo-clock-badge"
-                            title={t("demoClock.badge", {
-                                time: demoClock.time,
-                            })}
-                        >
-                            {demoClock.time}
+                        <span className="demo-journey-entry__copy">
+                            <span className="demo-journey-entry__label">
+                                {t("demoClock.entryLabel")}
+                            </span>
+                            <span className="demo-journey-entry__value">
+                                {demoDayIndex >= 0
+                                    ? t("demoClock.entryDay", {
+                                          day: demoDayIndex + 1,
+                                          date: demoDateKey,
+                                      })
+                                    : demoDateKey
+                                      ? t("demoClock.entryDemoDate", {
+                                            date: demoDateKey,
+                                        })
+                                      : t("demoClock.entrySystemDate", {
+                                            date: todayKey,
+                                        })}
+                            </span>
                         </span>
-                    )}
+                        {demoClock && (
+                            <span
+                                className="demo-clock-badge"
+                                title={t("demoClock.badge", {
+                                    time: demoClock.time,
+                                })}
+                            >
+                                {demoClock.time}
+                            </span>
+                        )}
+                    </button>
                     <button
                         className="icon-button"
                         type="button"
@@ -1441,7 +1724,7 @@ function WorldPage({
                                     />
                                 )}
 
-                            {currentDay || optionalStep ? (
+                            {showQuest ? (
                                 <>
                                     {justCompletedDay && (
                                         <div className="inline-note" role="status">
@@ -1512,15 +1795,25 @@ function WorldPage({
                                     <div className="quest-heading">
                                         <div>
                                             <p className="eyebrow">
-                                                {currentDay
-                                                    ? t("world.dayOf", {
-                                                        day: dayNumber,
-                                                        total: dayTotal,
-                                                    })
-                                                    : t("world.optionalDayOf", {
-                                                        day: dayNumber,
-                                                        total: dayTotal,
-                                                    })}
+                                                {demoDateKey
+                                                    ? demoFocusedDay
+                                                        ? t("world.dayOf", {
+                                                              day: dayNumber,
+                                                              total: dayTotal,
+                                                          })
+                                                        : t(
+                                                              "demoClock.entryDemoDate",
+                                                              { date: demoDateKey }
+                                                          )
+                                                    : currentDay
+                                                      ? t("world.dayOf", {
+                                                            day: dayNumber,
+                                                            total: dayTotal,
+                                                        })
+                                                      : t("world.optionalDayOf", {
+                                                            day: dayNumber,
+                                                            total: dayTotal,
+                                                        })}
                                             </p>
                                             <h2>{questTitle}</h2>
                                             {dayNote && (
@@ -1529,14 +1822,16 @@ function WorldPage({
                                                 </p>
                                             )}
                                         </div>
-                                        <span
-                                            className={`quest-status ${dayResolution.resolved > 0
-                                                    ? "quest-status--done"
-                                                    : ""
-                                                }`}
-                                        >
-                                            {dayStatus}
-                                        </span>
+                                        {!showDemoDayState && (
+                                            <span
+                                                className={`quest-status ${dayResolution.resolved > 0
+                                                        ? "quest-status--done"
+                                                        : ""
+                                                    }`}
+                                            >
+                                                {dayStatus}
+                                            </span>
+                                        )}
                                     </div>
 
                                     <div className="progress-strip">
@@ -1693,7 +1988,97 @@ function WorldPage({
                                         />
                                     )}
 
-                                    {currentDay &&
+                                    {showDemoDayState && (
+                                        <DemoDayStateCard status={demoDayState} />
+                                    )}
+
+                                    {restAction && (
+                                        <div className="rest-action-row">
+                                            <button
+                                                className="btn btn--secondary rest-action"
+                                                type="button"
+                                                onClick={() => {
+                                                    const nextPlan =
+                                                        restAction === "undo"
+                                                            ? undoRest(
+                                                                  plan,
+                                                                  restFocusDay.id,
+                                                                  "primary"
+                                                              )
+                                                            : restSlot(
+                                                                  plan,
+                                                                  restFocusDay.id,
+                                                                  "primary"
+                                                              );
+                                                    commitPlan(nextPlan);
+                                                    setNotice(
+                                                        t(
+                                                            restAction === "undo"
+                                                                ? "world.rested.undone"
+                                                                : "world.rested.notice"
+                                                        )
+                                                    );
+                                                }}
+                                            >
+                                                {t(
+                                                    restAction === "undo"
+                                                        ? "world.undoRest"
+                                                        : "world.rest"
+                                                )}
+                                            </button>
+                                        </div>
+                                    )}
+
+                                                    {/** Readiness panel — compact, coherent presentation */}
+                                                    {currentDay && currentDay.primary && (
+                                                        <>
+                                                            {currentDay.primary.adaptedByReadiness && (
+                                                                <div className="readiness-adaptation">
+                                                                    <p className="readiness-adaptation__eyebrow">
+                                                                        {t("readiness.adaptationEyebrow")}
+                                                                    </p>
+                                                                    <p className="readiness-adaptation__row">
+                                                                        <span>
+                                                                            {t("readiness.planned", {
+                                                                                dose: currentDay.primary.plannedDose,
+                                                                        })}</span>
+                                                                        <span className="readiness-adaptation__separator">•</span>
+                                                                        <span>
+                                                                            {t("readiness.adapted", {
+                                                                                dose: currentDay.primary.dose,
+                                                                                energy: t(
+                                                                                    `readiness.energy.${currentDay.primary.readiness?.energy
+                                                                                        ?.toLowerCase() ||
+                                                        "okay"}.label`),
+                                                                                weather: t(
+                                                                                    `readiness.weather.${currentDay.primary.readiness?.weather
+                                                        ?.toLowerCase() ||
+                                                        "mild"}`),
+                                                                            })}</span>
+                                                                </p>
+                                                                    <p className="readiness-adaptation__reason">
+                                                                        {currentDay.primary.readinessWhy
+                                                                            ? t("readiness.adaptationReason", {
+                                                                                reason: currentDay.primary.readinessWhy,
+                                                                            })
+                                                                            : t("readiness.noAdaptationReason")}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+
+                                                            {!currentDay.primary.adaptedByReadiness && (
+                                                                <p className="readiness-adaptation__noChange">
+                                                                    {t("readiness.noAdaptation")}
+                                                              </p>
+                                                          )}
+
+                                                          <LearningInsightsCard
+                                                              learning={
+                                                                  outcomeMetrics.learning
+                                                              }
+                                                          />
+                                                      </>
+                                                    )}                                    {currentDay &&
                                         !optionalStep &&
                                         !plan.secondaryGoalId && (
                                             <AddFocusCard
@@ -1743,11 +2128,15 @@ function WorldPage({
             )}
 
             {sheet === "demoClock" && (
-                <DemoClockSheet onClose={() => setSheet(null)} />
+                <DemoClockSheet
+                    days={plan.days.slice(0, 7)}
+                    onClose={() => setSheet(null)}
+                />
             )}
 
             {sheet === "mood" && (
                 <ArrivalDeck
+                    key={flowDateKey}
                     initialMood={moodToday?.mood}
                     onClose={() => setSheet(null)}
                     onApply={handleApplyArrival}

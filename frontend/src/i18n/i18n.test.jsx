@@ -106,3 +106,31 @@ describe("dictionaries", () => {
         }
     });
 });
+
+describe("Phase D dictionary additions", () => {
+    const keys = [
+        "outcomes.learning.sample",
+        "outcomes.learning.steps",
+        "outcomes.learning.comfort",
+        "outcomes.learning.limit",
+        "world.undoRest",
+        "readiness.noAdaptationReason",
+    ];
+
+    function placeholders(value) {
+        return Array.from(String(value).matchAll(/\{(\w+)\}/g))
+            .map((match) => match[1])
+            .sort();
+    }
+
+    it("define symmetric values and interpolation placeholders", () => {
+        for (const key of keys) {
+            expect(en[key], `en.${key}`).toEqual(expect.any(String));
+            expect(ar[key], `ar.${key}`).toEqual(expect.any(String));
+            expect(placeholders(ar[key]), key).toEqual(placeholders(en[key]));
+        }
+
+        expect(placeholders(en["outcomes.learning.limit"])).toEqual(["count"]);
+        expect(placeholders(ar["outcomes.learning.limit"])).toEqual(["count"]);
+    });
+});

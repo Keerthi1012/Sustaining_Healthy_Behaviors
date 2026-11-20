@@ -51,6 +51,7 @@ def make_journey(day_count=2):
             "days": [
                 {
                     "id": f"day-{index + 1}",
+                    "date": f"2026-11-{index + 1:02d}",
                     "primary": make_entry(),
                 }
                 for index in range(day_count)
@@ -82,6 +83,13 @@ class TestJourneyAPI(unittest.TestCase):
         self.bob = self.register("bob")
         self.alice_headers = self.auth_headers(self.alice["token"])
         self.bob_headers = self.auth_headers(self.bob["token"])
+
+    def set_demo_mode(self, enabled):
+        app.state.journey_service = JourneyService(
+            self.database,
+            app.state.habit_repository,
+            demo_mode=enabled,
+        )
 
     def tearDown(self):
         self.client.close()
@@ -120,24 +128,29 @@ class TestJourneyAPI(unittest.TestCase):
         day_id="day-1",
         difficulty="easy",
         enjoyment="okay",
+        simulated_at=None,
     ):
+        payload = {
+            "day_id": day_id,
+            "slot": "primary",
+            "expected_revision": revision,
+            "feedback": {
+                "difficulty": difficulty,
+                "barrier": "Nothing in particular",
+                "safety": "none",
+                "enjoyment": enjoyment,
+            },
+        }
+        if simulated_at is not None:
+            payload["simulated_at"] = simulated_at
+
         return self.client.post(
             "/api/journeys/current/completions",
             headers={
                 **self.alice_headers,
                 "Idempotency-Key": key,
             },
-            json={
-                "day_id": day_id,
-                "slot": "primary",
-                "expected_revision": revision,
-                "feedback": {
-                    "difficulty": difficulty,
-                    "barrier": "Nothing in particular",
-                    "safety": "none",
-                    "enjoyment": enjoyment,
-                },
-            },
+            json=payload,
         )
 
     def test_01_create_and_get_journey(self):
@@ -338,6 +351,61 @@ class TestJourneyAPI(unittest.TestCase):
         response = self.create_journey(journey)
 
         self.assertEqual(response.status_code, 422)
+
+    def test_11_simulated_timestamps_are_rejected_outside_demo_mode(self):
+        self.create_journey()
+
+        response = self.complete(
+            1,
+            "simulation-disabled",
+            simulated_at="2026-11-01T12:00:00+04:00",
+        )
+
+        self.assertEqual(response.status_code, 403)
+        fetched = self.client.get(
+            "/api/journeys/current",
+            headers=self.alice_headers,
+        )
+        entry = fetched.json()["journey"]["plan"]["days"][0][
+            "primary"
+        ]
+        self.assertEqual(entry["status"], "planned")
+
+    def test_12_demo_mode_records_the_simulated_day(self):
+        self.set_demo_mode(True)
+        self.create_journey(make_journey(day_count=3))
+
+        response = self.complete(
+            1,
+            "simulation-day-2",
+            day_id="day-2",
+            simulated_at="2026-11-02T19:30:00+04:00",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        entry = response.json()["journey"]["plan"]["days"][1][
+            "primary"
+        ]
+        self.assertEqual(entry["status"], "completed")
+        self.assertTrue(
+            entry["completedAt"].startswith("2026-11-02T19:30:00")
+        )
+
+    def test_13_demo_mode_rejects_a_date_mismatch(self):
+        self.set_demo_mode(True)
+        self.create_journey()
+
+        response = self.complete(
+            1,
+            "simulation-mismatch",
+            simulated_at="2026-11-03T12:00:00+04:00",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json()["detail"],
+            "Demo date must match the selected journey day.",
+        )
 
 
 class TestDurableAuth(unittest.TestCase):

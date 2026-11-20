@@ -4,6 +4,7 @@ import {
     DEMO_CLOCK_EVENT,
     clearDemoClock,
     getDemoClock,
+    getDemoDateKey,
     getNow,
     isDemoClockEnabled,
     setDemoClock,
@@ -70,5 +71,32 @@ describe("demo clock", () => {
 
         expect(listener).toHaveBeenCalledTimes(2);
         expect(DEMO_CLOCK_EVENT).toBe("sproutly:demo-clock");
+    });
+
+    it("stores and exposes a simulated date separately from the system date", () => {
+        expect(getDemoDateKey()).toBeNull();
+
+        expect(
+            setDemoClock("19:30", "2026-11-04")
+        ).toBe(true);
+        expect(getDemoDateKey()).toBe("2026-11-04");
+
+        const now = getNow(new Date(2026, 10, 20, 10, 0));
+
+        expect(now.getDate()).toBe(4);
+        expect(now.getMonth()).toBe(10);
+    });
+
+    it("can clear a simulated date while keeping the demo time", () => {
+        setDemoClock("19:30", "2026-11-04");
+
+        expect(setDemoClock("20:15", null)).toBe(true);
+        expect(getDemoClock()?.time).toBe("20:15");
+        expect(getDemoDateKey()).toBeNull();
+
+        const now = getNow(new Date(2026, 10, 20, 10, 0));
+
+        expect(now.getDate()).toBe(20);
+        expect(now.getHours()).toBe(20);
     });
 });

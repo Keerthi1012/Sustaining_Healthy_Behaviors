@@ -299,6 +299,19 @@ export default {
     "world.keptToday": "أُنجزت اليوم. هذا يكفي.",
     "world.pausedSafety":
         "أُوقف مؤقتًا للسلامة. يرجى المراجعة قبل المتابعة.",
+    "readiness.adaptationEyebrow": "ضبط الجاهزية",
+    "readiness.planned": "الجرعة المخطط لها: {dose} دقيقة",
+    "readiness.plannedDefault": "النشاط المخطط له",
+    "readiness.adapted": "الجرعة المعدلة: {dose} دقيقة بسبب {energy} {weather}",
+    "readiness.adaptedDose": "الجرعة المعدلة: {dose} دقيقة",
+    "readiness.adaptationReason": "بسبب {reason}",
+    "readiness.noAdaptation": "النشاط كما هو مخطط",
+    "readiness.noAdaptationReason": "لم يُسجّل سبب محدد.",
+    "world.rest": "راحة",
+    "world.rested": "مستريح",
+    "world.rested.notice": "هذه الخطوة مستريح الآن. لن يتم احتسابها في التقدّم.",
+    "world.rested.undone": "إلغاء الراحة. تعود هذه الخطوة إلى التخطيط.",
+    "world.undoRest": "إلغاء الراحة",
     "world.iDidIt": "فعلتها",
     "world.somethingSmaller": "شيء أصغر",
     "world.whyThis": "لماذا هذه؟",
@@ -457,25 +470,42 @@ export default {
     "nudges.smoking.closing.body":
         "لا تزال لديك خطوة تكيّف جاهزة إن عادت الرغبة.",
 
-    "demoClock.title": "ساعة العرض التجريبي",
+    "demoClock.title": "رحلة العرض",
     "demoClock.eyebrow": "أدوات التحكّم",
     "demoClock.lead":
-        "حرّك ساعة التطبيق إلى أي وقت. يبقى تاريخ اليوم كما هو، وتتبع التنبيهات فتراتك المختارة.",
+        "حرّك ساعة التطبيق إلى وقت ويوم عرض مختارين. تبقى رحلتك والخطوات المكتملة كما هما.",
     "demoClock.current": "ساعة العرض مضبوطة على {time}.",
     "demoClock.timeLabel": "وقت العرض",
-    "demoClock.apply": "اضبط الساعة",
-    "demoClock.clear": "استخدم الوقت الحقيقي",
-    "demoClock.presetsLabel": "انتقل إلى فترة",
+    "demoClock.apply": "تطبيق إعدادات العرض",
+    "demoClock.clear": "استخدم التاريخ والوقت الحقيقيين",
+    "demoClock.presetsLabel": "انتقل إلى فترة زمنية",
     "demoClock.preset.movement": "الحركة {time}",
     "demoClock.preset.sleep": "النوم {time}",
     "demoClock.preset.nutrition": "التغذية {time}",
     "demoClock.preset.smoking": "الإقلاع {time}",
     "demoClock.note":
-        "هذا يغيّر تنبيهات التطبيق فقط للعرض التجريبي. لا يُرسل شيء إلى الخادم.",
-    "demoClock.open": "افتح ساعة العرض",
-    "demoClock.openActive": "ساعة العرض مضبوطة على {time}",
+        "تغيير تاريخ العرض لا يعيد تقدّمك إلى الوراء. تُقبل عمليات الإكمال المحاكاة فقط عندما يكون الخادم في وضع العرض.",
+    "demoClock.open": "افتح رحلة العرض",
+    "demoClock.openActive": "رحلة العرض مضبوطة على {time}",
+    "demoClock.openActiveDay":
+        "رحلة العرض، اليوم {day}، {date}، {time}",
+    "demoClock.openActiveDate": "رحلة العرض، {date}، {time}",
     "demoClock.badge": "وقت العرض {time}",
     "demoClock.invalid": "أدخل وقتًا صحيحًا، مثل 19:30.",
+    "demoClock.entryLabel": "رحلة العرض",
+    "demoClock.entrySystemDate": "تاريخ النظام {date}",
+    "demoClock.entryDemoDate": "تاريخ العرض {date}",
+    "demoClock.entryDay": "اليوم {day} · {date}",
+    "demoClock.actualDate": "تاريخ النظام الفعلي",
+    "demoClock.simulatedDate": "تاريخ العرض المحاكى",
+    "demoClock.notSet": "غير محدد — يتم استخدام تاريخ النظام",
+    "demoClock.daysLabel": "اختر يوم العرض",
+    "demoClock.systemDateOption": "تاريخ النظام",
+    "demoClock.day": "اليوم {day}",
+    "demoClock.warningDisabled":
+        "وضع العرض معطّل على الخادم. سيبقى المحدد متاحًا، لكن التواريخ المحاكاة قد تُرفض عند الحفظ.",
+    "demoClock.warningUnavailable":
+        "تعذّر تأكيد حالة وضع العرض. قد تُرفض التواريخ المحاكاة عند الحفظ.",
     "world.paused.eyebrow": "متوقف مؤقتًا",
 
 "measurement.title": "مراجعة لطيفة",
@@ -568,6 +598,27 @@ export default {
     "world.planComplete.title": "اكتملت خطتك الأولى.",
     "world.planComplete.body":
         "لا يوجد نتيجة تسعى إليها. يمكنك بدء خطة لطيفة أخرى من اختياراتك في أي وقت.",
+    "world.demoDayState.eyebrow": "يوم العرض المحدد",
+    "world.demoDayState.completed.label": "مكتمل",
+    "world.demoDayState.completed.title": "اكتمل هذا اليوم.",
+    "world.demoDayState.completed.body":
+        "كل مهمة في هذا اليوم أُنجزت. تقدّمك السابق لم يتغيّر.",
+    "world.demoDayState.rested.label": "مستريح",
+    "world.demoDayState.rested.title": "كان هذا يوم راحة.",
+    "world.demoDayState.rested.body":
+        "الراحة جزء من الخطة. هذا اليوم ليس مفقودًا ولم يُسجَّل كاملًا.",
+    "world.demoDayState.paused.label": "موقف مؤقتًا",
+    "world.demoDayState.paused.title": "هذا اليوم موقف مؤقتًا.",
+    "world.demoDayState.paused.body":
+        "الخطة تستريح لأسباب تتعلق بالسلامة. لم يتغيّر شيء هنا.",
+    "world.demoDayState.empty.label": "لا شيء مخطط",
+    "world.demoDayState.empty.title": "لا توجد مهمة مخطط لها في هذا اليوم.",
+    "world.demoDayState.empty.body":
+        "هذه هي الحالة الحقيقية لليوم المحدد. لم يُفتح يوم آخر بدلًا منه.",
+    "world.demoDayState.missing.label": "ليس في هذه الخطة",
+    "world.demoDayState.missing.title": "هذا التاريخ خارج الخطة.",
+    "world.demoDayState.missing.body":
+        "اختر أحد أيام العرض المدرجة لرؤية حالته الفعلية.",
     "world.notice.movementSync":
         "حُفظ على هذا الجهاز. سيتزامن سجل الحركة عند توفر الخدمة.",
     "world.notice.smaller":
@@ -888,6 +939,11 @@ export default {
     "outcomes.learning.barrier": "ظهر {barrier} {count} مرات.",
     "outcomes.learning.safety": "تم احترام توقفات الأمان: {count}.",
     "outcomes.learning.safetyNone": "لم تُسجّل توقفات أمان.",
+    "outcomes.learning.sample": "تسجيلات حديثة",
+    "outcomes.learning.steps": "خطوات جُرّبت",
+    "outcomes.learning.comfort": "شعرت بالراحة",
+    "outcomes.learning.limit":
+        "بناءً على {count} لحظة مسجلة. هذه النافذة القصيرة لا تُظهر تغييرًا طويل المدى.",
     "outcomes.learning.guidance.gentler":
         "تشير الملاحظات الأخيرة إلى إبقاء الخطوة التالية لطيفة.",
     "outcomes.learning.guidance.hold":

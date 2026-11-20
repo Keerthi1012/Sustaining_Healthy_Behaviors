@@ -6,6 +6,11 @@ export default defineConfig({
     test: {
         environment: "jsdom",
         setupFiles: ["./src/test/setup.js"],
+        env: {
+            VITE_API_BASE_URL: "",
+            VITE_USE_BACKEND_JOURNEY: "false",
+            VITE_USE_BACKEND_PROGRESSION: "false",
+        },
         restoreMocks: true,
         testTimeout: 10000,
     },

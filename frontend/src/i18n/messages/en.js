@@ -310,6 +310,19 @@ export default {
     "world.keptToday": "Kept today. That is enough.",
     "world.pausedSafety":
         "Paused for safety. Please review before continuing.",
+    "readiness.adaptationEyebrow": "Readiness adjustment",
+    "readiness.planned": "Planned dose: {dose} min",
+    "readiness.plannedDefault": "Planned activity",
+    "readiness.adapted": "Adapted dose: {dose} min due to {energy} {weather}",
+    "readiness.adaptedDose": "Adapted dose: {dose} min",
+    "readiness.adaptationReason": "due to {reason}",
+    "readiness.noAdaptation": "Activity as planned",
+    "readiness.noAdaptationReason": "No specific reason recorded.",
+    "world.rest": "Rest",
+    "world.rested": "Rested",
+    "world.rested.notice": "This step is now rested. It will not count toward progress.",
+    "world.rested.undone": "Rest undone. This step returns to planning.",
+    "world.undoRest": "Undo Rest",
     "world.iDidIt": "I did it",
     "world.somethingSmaller": "Something smaller",
     "world.whyThis": "Why this?",
@@ -470,25 +483,42 @@ export default {
     "nudges.smoking.closing.body":
         "You still have a coping step ready if the craving returns.",
 
-    "demoClock.title": "Demo clock",
+    "demoClock.title": "Demo Journey",
     "demoClock.eyebrow": "Judge controls",
     "demoClock.lead":
-        "Move the in-app clock to any time. Today's date stays the same, and nudges follow your onboarding windows.",
+        "Move the in-app clock to a chosen time and demo day. Your journey and completed steps stay unchanged.",
     "demoClock.current": "Demo clock is set to {time}.",
     "demoClock.timeLabel": "Demo time",
-    "demoClock.apply": "Set clock",
-    "demoClock.clear": "Use real time",
-    "demoClock.presetsLabel": "Jump to a window",
+    "demoClock.apply": "Apply demo settings",
+    "demoClock.clear": "Use real date and time",
+    "demoClock.presetsLabel": "Jump to a time window",
     "demoClock.preset.movement": "Movement {time}",
     "demoClock.preset.sleep": "Sleep {time}",
     "demoClock.preset.nutrition": "Nutrition {time}",
     "demoClock.preset.smoking": "Smoking {time}",
     "demoClock.note":
-        "This only changes in-tab nudges for the demo. Nothing is sent to the backend.",
-    "demoClock.open": "Open demo clock",
-    "demoClock.openActive": "Demo clock set to {time}",
+        "Changing the demo date does not reset progress. Simulated completions are only accepted when the server is in demo mode.",
+    "demoClock.open": "Open Demo Journey",
+    "demoClock.openActive": "Demo Journey set to {time}",
+    "demoClock.openActiveDay":
+        "Demo Journey, Day {day}, {date}, {time}",
+    "demoClock.openActiveDate": "Demo Journey, {date}, {time}",
     "demoClock.badge": "Demo time {time}",
     "demoClock.invalid": "Enter a valid time, like 19:30.",
+    "demoClock.entryLabel": "Demo Journey",
+    "demoClock.entrySystemDate": "System date {date}",
+    "demoClock.entryDemoDate": "Demo date {date}",
+    "demoClock.entryDay": "Day {day} · {date}",
+    "demoClock.actualDate": "Actual system date",
+    "demoClock.simulatedDate": "Simulated demo date",
+    "demoClock.notSet": "Not set — using system date",
+    "demoClock.daysLabel": "Choose a demo day",
+    "demoClock.systemDateOption": "System date",
+    "demoClock.day": "Day {day}",
+    "demoClock.warningDisabled":
+        "Demo mode is disabled on the server. The selector stays available, but simulated dates may be rejected when saving.",
+    "demoClock.warningUnavailable":
+        "Demo mode status could not be confirmed. Simulated dates may be rejected when saving.",
     "world.paused.eyebrow": "PAUSED",
 
 "measurement.title": "A gentle look back",
@@ -584,6 +614,27 @@ export default {
     "world.planComplete.title": "Your first plan is complete.",
     "world.planComplete.body":
         "There is no score to chase. You can start another gentle plan from your choices at any time.",
+    "world.demoDayState.eyebrow": "SELECTED DEMO DAY",
+    "world.demoDayState.completed.label": "Completed",
+    "world.demoDayState.completed.title": "This day is complete.",
+    "world.demoDayState.completed.body":
+        "Every quest on this day is already done. Your earlier progress is unchanged.",
+    "world.demoDayState.rested.label": "Rested",
+    "world.demoDayState.rested.title": "This was a rest day.",
+    "world.demoDayState.rested.body":
+        "Rest is part of the plan. This day is not missed and was not marked complete.",
+    "world.demoDayState.paused.label": "Paused",
+    "world.demoDayState.paused.title": "This day is paused.",
+    "world.demoDayState.paused.body":
+        "The plan is resting for safety. Nothing here was changed.",
+    "world.demoDayState.empty.label": "Nothing planned",
+    "world.demoDayState.empty.title": "No quest is planned for this day.",
+    "world.demoDayState.empty.body":
+        "This is the real state of the selected day. No other day was opened instead.",
+    "world.demoDayState.missing.label": "Not in this plan",
+    "world.demoDayState.missing.title": "This date is outside the plan.",
+    "world.demoDayState.missing.body":
+        "Choose one of the listed demo days to see its actual state.",
     "world.notice.movementSync":
         "Saved on this device. Movement history will sync when the service is available.",
     "world.notice.smaller":
@@ -901,6 +952,11 @@ export default {
     "outcomes.learning.barrier": "{barrier} came up {count} times.",
     "outcomes.learning.safety": "Safety pauses respected: {count}.",
     "outcomes.learning.safetyNone": "No safety pauses recorded.",
+    "outcomes.learning.sample": "Recent check-ins",
+    "outcomes.learning.steps": "Steps tried",
+    "outcomes.learning.comfort": "Felt comfortable",
+    "outcomes.learning.limit":
+        "Based on {count} recorded moments. This short window does not show long-term change.",
     "outcomes.learning.guidance.gentler":
         "Recent feedback suggests keeping the next step gentle.",
     "outcomes.learning.guidance.hold":

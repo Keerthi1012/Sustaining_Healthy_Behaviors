@@ -15,14 +15,11 @@ class TestHealthAPI(unittest.TestCase):
 
     def assert_healthy(self, response):
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            response.json(),
-            {
-                "status": "healthy",
-                "application": "Habit-RPG",
-                "version": "0.1.0",
-            },
-        )
+        body = response.json()
+        self.assertEqual(body["status"], "healthy")
+        self.assertEqual(body["application"], "Habit-RPG")
+        self.assertEqual(body["version"], "0.1.0")
+        self.assertIsInstance(body["demo_mode"], bool)
 
     def test_api_health_reports_healthy(self):
         self.assert_healthy(self.client.get("/api/health"))

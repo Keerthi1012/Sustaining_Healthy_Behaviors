@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 
-import { getNow, subscribeDemoClock } from "../services/demoClock";
+import {
+    getDemoDateKey,
+    getNow,
+    subscribeDemoClock,
+} from "../services/demoClock";
 import { getNudgeDecision } from "../services/nudgeEngine";
 import {
     loadNudgeState,
@@ -11,6 +15,18 @@ import { toDateKey } from "../utils/date";
 
 export const NUDGE_TICK_MS = 30000;
 export const NUDGE_SNOOZE_MINUTES = 90;
+
+function isNudgeMomentActionable(plan, nudge) {
+    const moment = nudge?.moment;
+    const day = plan?.days?.find((item) => item.id === moment?.dayId);
+    const entry = moment?.slot ? day?.[moment.slot] : null;
+
+    return Boolean(
+        entry &&
+            entry.status === "planned" &&
+            (!moment.date || day.date === moment.date)
+    );
+}
 
 export function useNudgeScheduler({
     userId,
@@ -32,6 +48,7 @@ export function useNudgeScheduler({
             if (cancelled) return;
 
             const now = getNow();
+            const dateKey = getDemoDateKey();
             const state = loadNudgeState(userId, now);
             const decision = getNudgeDecision({
                 now,
@@ -41,9 +58,14 @@ export function useNudgeScheduler({
                 lastSentAtByDomain: state.lastSentAtByDomain,
                 sentCountToday: state.count,
                 snoozedUntil: state.snoozedUntil,
+                dateKey,
             });
 
-            if (!decision.show) {
+            if (
+                !decision.show ||
+                !isNudgeMomentActionable(plan, decision)
+            ) {
+                seenRef.current = null;
                 setActiveNudge(null);
                 return;
             }

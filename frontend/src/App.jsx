@@ -249,6 +249,8 @@ function App() {
                         expectedRevision:
                             syncRef.current.revision,
                         idempotencyKey: command.idempotencyKey,
+                        simulatedAt:
+                            command.payload.simulatedAt,
                     });
 
                     syncRef.current.revision = result.revision;
@@ -373,6 +375,7 @@ function App() {
                     feedback: command.feedback,
                     expectedRevision,
                     idempotencyKey: command.idempotencyKey,
+                    simulatedAt: command.simulatedAt,
                 });
 
             try {
@@ -426,6 +429,7 @@ function App() {
                         dayId: command.dayId,
                         slot: command.slot,
                         feedback: command.feedback,
+                        simulatedAt: command.simulatedAt,
                     },
                     createdAt: new Date().toISOString(),
                 });

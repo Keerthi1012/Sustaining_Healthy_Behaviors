@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from fastapi import FastAPI
+from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.activity import router as activity_router
@@ -26,12 +27,18 @@ from app.services.journey_service import JourneyService
 from app.storage.database import SqliteDatabase
 
 
+load_dotenv()
+
+
 DEFAULT_DATABASE_PATH = (
     Path(__file__).resolve().parent / "data" / "sproutly.db"
 )
 
 
-def create_app(database_path: str | Path | None = None) -> FastAPI:
+def create_app(
+    database_path: str | Path | None = None,
+    demo_mode: bool | None = None,
+) -> FastAPI:
     application = FastAPI(
         title="Habit-RPG API",
         description="Backend API for the Habit-RPG application",
@@ -55,8 +62,17 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
     )
     database = SqliteDatabase(resolved_path)
     habit_repository = HabitRepository()
+    resolved_demo_mode = (
+        demo_mode
+        if demo_mode is not None
+        else os.getenv("HABIT_RPG_DEMO_MODE", "")
+        .strip()
+        .lower()
+        == "true"
+    )
 
     application.state.database = database
+    application.state.demo_mode = resolved_demo_mode
     application.state.activity_repository = (
         InMemoryActivityRepository()
     )
@@ -75,6 +91,7 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
     application.state.journey_service = JourneyService(
         database,
         habit_repository,
+        demo_mode=resolved_demo_mode,
     )
 
     application.include_router(auth_router)
@@ -96,6 +113,7 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
             "status": "healthy",
             "application": "Habit-RPG",
             "version": "0.1.0",
+            "demo_mode": resolved_demo_mode,
         }
 
     return application

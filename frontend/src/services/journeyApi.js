@@ -42,6 +42,7 @@ export async function completeCurrentJourney({
     feedback,
     expectedRevision,
     idempotencyKey,
+    simulatedAt,
 }) {
     return request("/api/journeys/current/completions", {
         method: "POST",
@@ -60,6 +61,14 @@ export async function completeCurrentJourney({
                 barrier: feedback?.barrier ?? null,
                 safety: feedback?.safety ?? "none",
             },
+            ...(simulatedAt
+                ? { simulated_at: simulatedAt }
+                : {}),
         }),
     });
+}
+
+export async function getBackendDemoMode() {
+    const health = await request("/api/health");
+    return health?.demo_mode === true;
 }

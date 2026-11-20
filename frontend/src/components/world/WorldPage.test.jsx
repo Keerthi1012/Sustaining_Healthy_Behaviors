@@ -12,6 +12,7 @@ import {
     render,
     screen,
     waitFor,
+    within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -20,7 +21,9 @@ import {
     addSecondaryGoal,
     buildPlan,
     completeSlot,
+    restSlot,
 } from "../../services/planEngine";
+import { getLearningSummary } from "../../services/learning";
 import { getSampleAbuDhabiProfile } from "../../services/ecosystemStore";
 import { mapHabitToAction } from "../../services/habitApi";
 import {
@@ -28,8 +31,15 @@ import {
     saveArrivalEntry,
 } from "../../services/arrivalStore";
 import { I18nProvider } from "../../i18n";
-import { setDemoClock } from "../../services/demoClock";
-import { addDays } from "../../utils/date";
+import { interpolate } from "../../i18n/context";
+import en from "../../i18n/messages/en";
+import ar from "../../i18n/messages/ar";
+import {
+    getDemoClock,
+    setDemoClock,
+} from "../../services/demoClock";
+import { getMoodEntry, saveMoodEntry } from "../../services/moodStore";
+import { addDays, toDateKey } from "../../utils/date";
 
 vi.mock("../../services/activityApi", () => ({
     getUserActivities: vi.fn(async () => []),
@@ -38,6 +48,10 @@ vi.mock("../../services/activityApi", () => ({
         duration_minutes: 5,
         started_at: new Date().toISOString(),
     })),
+}));
+
+vi.mock("../../services/journeyApi", () => ({
+    getBackendDemoMode: vi.fn(async () => true),
 }));
 
 const { createWalkingActivity } = await import("../../services/activityApi");
@@ -71,6 +85,43 @@ function makePlan(dayCount = 3, startedDaysAgo = 5) {
     return { ...plan, days: plan.days.slice(0, dayCount) };
 }
 
+function seedDemoDayArrivals(plan, indices = null) {
+    const days = indices
+        ? indices.map((index) => plan.days[index])
+        : plan.days.slice(0, 7);
+
+    days.forEach((day) => {
+        if (!day?.date) return;
+
+        saveArrivalEntry(
+            user.user_id,
+            { skipped: true, date: day.date },
+            new Date(`${day.date}T12:00:00`)
+        );
+    });
+}
+
+async function applyDemoDay(dayIndex, time = "19:30") {
+    const tester = userEvent.setup();
+
+    await tester.click(
+        screen.getByRole("button", { name: /Demo Journey/i })
+    );
+    await tester.click(
+        screen.getByRole("button", {
+            name: new RegExp(`^Day ${dayIndex + 1}`),
+        })
+    );
+    fireEvent.change(screen.getByLabelText("Demo time"), {
+        target: { value: time },
+    });
+    await tester.click(
+        screen.getByRole("button", {
+            name: "Apply demo settings",
+        })
+    );
+}
+
 function renderWorld(plan, overrides = {}, journeyOverrides = {}, options = {}) {
     const onJourneyChange = vi.fn();
 
@@ -87,7 +138,7 @@ function renderWorld(plan, overrides = {}, journeyOverrides = {}, options = {}) 
         ...journeyOverrides,
     };
 
-    render(
+    const page = (
         <WorldPage
             journey={journey}
             user={user}
@@ -99,12 +150,335 @@ function renderWorld(plan, overrides = {}, journeyOverrides = {}, options = {}) 
         />
     );
 
+    render(
+        options.locale ? (
+            <I18nProvider initialLocale={options.locale}>{page}</I18nProvider>
+        ) : (
+            page
+        )
+    );
+
     return { onJourneyChange, journey };
 }
 
 function completeDay(plan, index) {
     return completeSlot(plan, plan.days[index].id, "primary", feedback);
 }
+
+const BARRIER_KEYS = {
+    "Not enough time": "checkin.barrier.time",
+    "Low energy": "checkin.barrier.energy",
+    "Discomfort or pain": "checkin.barrier.pain",
+};
+
+function buildLearnedPlan() {
+    let plan = makePlan(4);
+
+    plan = completeSlot(plan, plan.days[0].id, "primary", {
+        difficulty: "comfortable",
+        barrier: "Not enough time",
+        safety: "none",
+    });
+    plan = completeSlot(plan, plan.days[1].id, "primary", {
+        difficulty: "easy",
+        barrier: "Not enough time",
+        safety: "none",
+    });
+    plan = completeSlot(plan, plan.days[2].id, "primary", {
+        difficulty: "difficult",
+        barrier: "Low energy",
+        safety: "pain",
+    });
+
+    return plan;
+}
+
+describe("Phase C rest action visibility", () => {
+    beforeEach(() => {
+        window.localStorage.clear();
+    });
+
+    it("shows one visible secondary Rest action and keeps the primary CTA dominant", () => {
+        const plan = makePlan();
+
+        renderWorld(plan);
+
+        const rest = screen.getByRole("button", { name: "Rest" });
+
+        expect(rest).toHaveClass("btn", "btn--secondary", "rest-action");
+        expect(rest).not.toHaveClass("btn--ghost");
+        expect(
+            screen.queryByRole("button", { name: /undo/i })
+        ).not.toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /I did it/i })
+        ).toHaveClass("btn", "btn--primary");
+    });
+
+    it("rests the planned step through the secondary action", async () => {
+        const plan = makePlan();
+        const { onJourneyChange } = renderWorld(plan);
+        const tester = userEvent.setup();
+
+        await tester.click(screen.getByRole("button", { name: "Rest" }));
+
+        await waitFor(() => expect(onJourneyChange).toHaveBeenCalled());
+
+        const nextJourney = onJourneyChange.mock.calls.at(-1)[0];
+
+        expect(nextJourney.plan.days[0].primary.status).toBe("rested");
+        expect(nextJourney.plan.days[0].primary.restReason).toBe("tired");
+    });
+
+    it("shows only Undo Rest for a rested focused day and restores planning", async () => {
+        const basePlan = makePlan();
+        const plan = restSlot(basePlan, basePlan.days[0].id, "primary");
+        seedDemoDayArrivals(plan, [0]);
+        setDemoClock("12:00", plan.days[0].date);
+
+        const { onJourneyChange } = renderWorld(plan);
+        const undo = screen.getByRole("button", { name: "Undo Rest" });
+        const tester = userEvent.setup();
+
+        expect(undo).toHaveClass("btn", "btn--secondary", "rest-action");
+        expect(undo).not.toHaveClass("btn--ghost");
+        expect(
+            screen.queryByRole("button", { name: "Rest" })
+        ).not.toBeInTheDocument();
+
+        await tester.click(undo);
+
+        await waitFor(() => expect(onJourneyChange).toHaveBeenCalled());
+
+        const nextJourney = onJourneyChange.mock.calls.at(-1)[0];
+
+        expect(nextJourney.plan.days[0].primary.status).toBe("planned");
+        expect(nextJourney.plan.days[0].primary.restedAt).toBeNull();
+        expect(
+            nextJourney.plan.days[0].adaptations?.some(
+                (adaptation) => adaptation?.type === "rest"
+            )
+        ).not.toBe(true);
+    });
+
+    it("uses Arabic copy and RTL layout for the rest action", () => {
+        const plan = makePlan();
+
+        renderWorld(plan, {}, {}, { locale: "ar" });
+
+        expect(document.documentElement).toHaveAttribute("dir", "rtl");
+        expect(
+            screen.getByRole("button", { name: "راحة" })
+        ).toHaveClass("rest-action");
+    });
+});
+
+describe("Phase D learning insights on the wellness home", () => {
+    beforeEach(() => {
+        window.localStorage.clear();
+    });
+
+    function getMetric(card, label) {
+        return within(card).getByText(label).nextElementSibling?.textContent;
+    }
+
+    function buildReadinessPlan() {
+        const basePlan = makePlan();
+
+        return {
+            ...basePlan,
+            days: basePlan.days.map((day, index) =>
+                index === 0
+                    ? {
+                          ...day,
+                          primary: {
+                              ...day.primary,
+                              adaptedByReadiness: true,
+                              plannedDose: 10,
+                              dose: 5,
+                              readiness: {
+                                  energy: "low",
+                                  time: 5,
+                                  weather: "hot",
+                              },
+                          },
+                      }
+                    : day
+            ),
+        };
+    }
+
+    it("renders recorded learning data instead of hardcoded values", () => {
+        const plan = buildLearnedPlan();
+        const { insight, actions } = getLearningSummary(plan);
+        const barrierKey =
+            BARRIER_KEYS[insight.topBarrier.barrier] ??
+            insight.topBarrier.barrier;
+
+        renderWorld(plan);
+
+        const card = screen.getByRole("region", {
+            name: en["outcomes.learning.title"],
+        });
+
+        expect(
+            within(card).getByText(
+                interpolate(en["outcomes.learning.lead"], {
+                    count: insight.totalResolved,
+                })
+            )
+        ).toBeInTheDocument();
+        expect(getMetric(card, en["outcomes.learning.sample"])).toBe(
+            String(insight.sampleSize)
+        );
+        expect(getMetric(card, en["outcomes.learning.steps"])).toBe(
+            String(actions.length)
+        );
+        expect(getMetric(card, en["outcomes.learning.comfort"])).toBe(
+            `${insight.comfortRate}%`
+        );
+        expect(
+            within(card).getByText(
+                interpolate(en["outcomes.learning.action"], {
+                    action: insight.topAction.title,
+                    count: insight.topAction.effective,
+                })
+            )
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(
+                interpolate(en["outcomes.learning.barrier"], {
+                    barrier:
+                        en[barrierKey] ?? insight.topBarrier.barrier,
+                    count: insight.topBarrier.count,
+                })
+            )
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(
+                interpolate(en["outcomes.learning.safety"], {
+                    count: insight.safetyPauses,
+                })
+            )
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(
+                en[`outcomes.learning.guidance.${insight.guidance}`]
+            )
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(
+                interpolate(en["outcomes.learning.limit"], {
+                    count: insight.totalResolved,
+                })
+            )
+        ).toBeInTheDocument();
+        expect(
+            within(card).queryByText(/outcomes\.learning|learning\.insights/)
+        ).not.toBeInTheDocument();
+    });
+
+    it("shows an honest empty state when no learning data is recorded", () => {
+        renderWorld(makePlan());
+
+        const card = screen.getByRole("region", {
+            name: en["outcomes.learning.title"],
+        });
+
+        expect(
+            within(card).getByText(en["outcomes.learning.empty"])
+        ).toBeInTheDocument();
+        expect(
+            within(card).getByText(
+                interpolate(en["outcomes.learning.limit"], { count: 0 })
+            )
+        ).toBeInTheDocument();
+        expect(
+            within(card).queryByText(en["outcomes.learning.sample"])
+        ).not.toBeInTheDocument();
+        expect(
+            within(card).queryByText(/outcomes\.learning|learning\.insights/)
+        ).not.toBeInTheDocument();
+    });
+
+    it("renders Arabic learning data with RTL-safe localized copy", () => {
+        const plan = buildLearnedPlan();
+        const { insight } = getLearningSummary(plan);
+
+        renderWorld(plan, {}, {}, { locale: "ar" });
+
+        expect(document.documentElement).toHaveAttribute("dir", "rtl");
+
+        const card = screen.getByRole("region", {
+            name: ar["outcomes.learning.title"],
+        });
+
+        expect(
+            within(card).getByText(
+                interpolate(ar["outcomes.learning.lead"], {
+                    count: insight.totalResolved,
+                })
+            )
+        ).toBeInTheDocument();
+        expect(getMetric(card, ar["outcomes.learning.comfort"])).toBe(
+            `${insight.comfortRate}%`
+        );
+        expect(
+            within(card).getByText(
+                interpolate(ar["outcomes.learning.limit"], {
+                    count: insight.totalResolved,
+                })
+            )
+        ).toBeInTheDocument();
+        expect(
+            within(card).queryByText(/outcomes\.learning|learning\.insights/)
+        ).not.toBeInTheDocument();
+    });
+
+    it.each([
+        ["en", en],
+        ["ar", ar],
+    ])(
+        "renders the localized readiness weather and reason for %s",
+        (locale, dictionary) => {
+            const plan = buildReadinessPlan();
+
+            renderWorld(plan, {}, {}, { locale });
+
+            expect(
+                screen.getByText(
+                    interpolate(dictionary["readiness.adapted"], {
+                        dose: plan.days[0].primary.dose,
+                        energy: dictionary["readiness.energy.low.label"],
+                        weather: dictionary["readiness.weather.hot"],
+                    })
+                )
+            ).toBeInTheDocument();
+            expect(
+                screen.getByText(dictionary["readiness.noAdaptationReason"])
+            ).toBeInTheDocument();
+            expect(
+                screen.queryByText(
+                    /readiness\.weather|readiness\.noAdaptationReason/
+                )
+            ).not.toBeInTheDocument();
+        }
+    );
+
+    it("uses the localized Undo Rest label in Arabic", () => {
+        const basePlan = makePlan();
+        const plan = restSlot(basePlan, basePlan.days[0].id, "primary");
+
+        seedDemoDayArrivals(plan, [0]);
+        setDemoClock("12:00", plan.days[0].date);
+        renderWorld(plan, {}, {}, { locale: "ar" });
+
+        expect(
+            screen.getByRole("button", { name: ar["world.undoRest"] })
+        ).toHaveClass("rest-action");
+        expect(screen.queryByText("world.undoRest")).not.toBeInTheDocument();
+    });
+});
 
 describe("wellness home day selection", () => {
     beforeEach(() => {
@@ -899,6 +1273,32 @@ describe("backend journey completion", () => {
             ).primary.progressionLevel
         ).not.toBe(2);
     });
+
+    it("sends the selected demo date with backend completions", async () => {
+        vi.stubEnv("VITE_USE_BACKEND_JOURNEY", "true");
+        window.localStorage.clear();
+        const demoDate = toDateKey(addDays(new Date(), -5));
+        setDemoClock("12:00", demoDate);
+
+        const onCompleteJourney = vi.fn(async () => null);
+        renderWorld(makePlan(), { onCompleteJourney });
+
+        const tester = userEvent.setup();
+        await tester.click(
+            screen.getByRole("button", { name: /I did it/i })
+        );
+        await tester.click(
+            screen.getByRole("button", { name: /Save this step/i })
+        );
+
+        await waitFor(() =>
+            expect(onCompleteJourney).toHaveBeenCalledTimes(1)
+        );
+
+        const command = onCompleteJourney.mock.calls[0][0];
+        expect(command.simulatedAt).toBeTruthy();
+        expect(command.simulatedAt.slice(0, 10)).toBe(demoDate);
+    });
 });
 
 describe("ecosystem context on the wellness home", () => {
@@ -1095,14 +1495,16 @@ describe("time-based nudges on the wellness home", () => {
         ).not.toBeInTheDocument();
 
         await tester.click(
-            screen.getByRole("button", { name: "Open demo clock" })
+            screen.getByRole("button", { name: "Open Demo Journey" })
         );
 
         fireEvent.change(screen.getByLabelText("Demo time"), {
             target: { value: "20:00" },
         });
         await tester.click(
-            screen.getByRole("button", { name: "Set clock" })
+            screen.getByRole("button", {
+                name: "Apply demo settings",
+            })
         );
 
         await waitFor(() =>
@@ -1156,6 +1558,369 @@ describe("time-based nudges on the wellness home", () => {
         expect(nextJourney.preferences.schedule.windows.sleep).toEqual([
             { start: "09:00", end: "11:00" },
         ]);
+    });
+});
+
+describe("demo journey entry point", () => {
+    beforeEach(() => {
+        window.localStorage.clear();
+    });
+
+    afterEach(() => {
+        cleanup();
+        window.localStorage.clear();
+    });
+
+    it("is labelled and shows the actual system date when no demo date is set", () => {
+        renderWorld(makePlan());
+
+        const entry = screen.getByRole("button", {
+            name: /Demo Journey/i,
+        });
+
+        expect(entry).toBeInTheDocument();
+        expect(
+            within(entry).getByText(`System date ${toDateKey()}`)
+        ).toBeInTheDocument();
+    });
+
+    it("shows the selected demo day and date after applying it", async () => {
+        const tester = userEvent.setup();
+        const plan = makePlan(7);
+
+        renderWorld(plan);
+
+        await tester.click(
+            screen.getByRole("button", { name: /Demo Journey/i })
+        );
+        await tester.click(
+            screen.getByRole("button", { name: /Day 3/ })
+        );
+        await tester.click(
+            screen.getByRole("button", {
+                name: "Apply demo settings",
+            })
+        );
+
+        const entry = screen.getByRole("button", {
+            name: /Demo Journey/i,
+        });
+
+        expect(
+            within(entry).getByText(`Day 3 · ${plan.days[2].date}`)
+        ).toBeInTheDocument();
+        expect(entry).toHaveAccessibleName(
+            new RegExp(`Day 3.*${plan.days[2].date}.*19:30`)
+        );
+        expect(getDemoClock()?.date).toBe(plan.days[2].date);
+    });
+});
+
+describe("Phase B.1 demo journey corrections", () => {
+    const nudgePreferences = {
+        showReturnCard: false,
+        quietWorld: true,
+        nudges: { enabled: true, channel: "in_app" },
+    };
+
+    beforeEach(() => {
+        window.localStorage.clear();
+    });
+
+    afterEach(() => {
+        cleanup();
+        window.localStorage.clear();
+        vi.unstubAllEnvs();
+    });
+
+    it("makes the applied journey day the active day", async () => {
+        const plan = makePlan(7);
+        seedDemoDayArrivals(plan);
+
+        renderWorld(plan);
+
+        await applyDemoDay(3, "12:00");
+
+        expect(screen.getByText("DAY 4 OF 7")).toBeInTheDocument();
+        expect(
+            screen.getAllByRole("heading", {
+                name: plan.days[3].primary.title,
+            }).length
+        ).toBeGreaterThan(0);
+        expect(screen.queryByText("DAY 1 OF 7")).not.toBeInTheDocument();
+        expect(getDemoClock()?.date).toBe(plan.days[3].date);
+    });
+
+    it("completes the displayed day with a matching simulated timestamp", async () => {
+        vi.stubEnv("VITE_USE_BACKEND_JOURNEY", "true");
+        const plan = makePlan(7);
+        seedDemoDayArrivals(plan);
+        setDemoClock("12:00", plan.days[2].date);
+        const onCompleteJourney = vi.fn(async () => null);
+
+        const { onJourneyChange } = renderWorld(plan, {
+            onCompleteJourney,
+        });
+
+        expect(screen.getByText("DAY 3 OF 7")).toBeInTheDocument();
+
+        const tester = userEvent.setup();
+        await tester.click(
+            screen.getByRole("button", { name: /I did it/i })
+        );
+        await tester.click(
+            screen.getByRole("button", { name: /Save this step/i })
+        );
+
+        await waitFor(() =>
+            expect(onCompleteJourney).toHaveBeenCalledTimes(1)
+        );
+
+        const command = onCompleteJourney.mock.calls[0][0];
+        const nextJourney = onJourneyChange.mock.calls.at(-1)[0];
+
+        expect(command.dayId).toBe(plan.days[2].id);
+        expect(command.simulatedAt.slice(0, 10)).toBe(
+            plan.days[2].date
+        );
+        expect(nextJourney.plan.days[2].primary.status).toBe("completed");
+        expect(nextJourney.plan.days[0].primary.status).toBe("planned");
+    });
+
+    it("preserves completed and rested progress while switching days", async () => {
+        const initial = makePlan(7);
+        const completed = completeDay(initial, 0);
+        const plan = restSlot(completed, completed.days[1].id, "primary");
+        seedDemoDayArrivals(plan);
+
+        const { onJourneyChange } = renderWorld(plan);
+
+        await applyDemoDay(0, "12:00");
+        expect(screen.getByText("DAY 1 OF 7")).toBeInTheDocument();
+        expect(screen.getByText("This day is complete.")).toBeInTheDocument();
+
+        await applyDemoDay(1, "12:00");
+        expect(screen.getByText("DAY 2 OF 7")).toBeInTheDocument();
+        expect(screen.getByText("This was a rest day.")).toBeInTheDocument();
+        expect(screen.queryByText(/^missed$/i)).not.toBeInTheDocument();
+
+        await applyDemoDay(4, "12:00");
+        expect(screen.getByText("DAY 5 OF 7")).toBeInTheDocument();
+        expect(
+            screen.getAllByRole("heading", {
+                name: plan.days[4].primary.title,
+            }).length
+        ).toBeGreaterThan(0);
+
+        expect(onJourneyChange).not.toHaveBeenCalled();
+        expect(plan.days[0].primary.status).toBe("completed");
+        expect(plan.days[1].primary.status).toBe("rested");
+    });
+
+    it("opens the Mood Deck for a new simulated day and stores its mood there", async () => {
+        const plan = makePlan(7);
+        seedDemoDayArrivals(plan, [0]);
+
+        renderWorld(plan);
+
+        await applyDemoDay(1, "09:00");
+
+        expect(
+            screen.getByRole("heading", {
+                name: "How are you arriving today?",
+            })
+        ).toBeInTheDocument();
+
+        const tester = userEvent.setup();
+        await tester.click(
+            screen.getByRole("button", { name: "This is me" })
+        );
+        await tester.click(
+            screen.getByRole("button", { name: "This is me" })
+        );
+        await tester.click(
+            screen.getByRole("button", { name: "This is me" })
+        );
+        await tester.click(
+            screen.getByRole("button", { name: "Use this for today" })
+        );
+
+        expect(getArrivalEntry(user.user_id, plan.days[1].date)).toMatchObject({
+            mood: "calm",
+        });
+        expect(getMoodEntry(user.user_id, plan.days[1].date)?.mood).toBe(
+            "calm"
+        );
+        expect(getMoodEntry(user.user_id, plan.days[0].date)).toBeNull();
+        expect(getMoodEntry(user.user_id, toDateKey())).toBeNull();
+    });
+
+    it("does not reopen the Mood Deck when returning to a completed simulated day", async () => {
+        const plan = makePlan(7);
+        seedDemoDayArrivals(plan, [0]);
+
+        renderWorld(plan);
+
+        await applyDemoDay(1, "09:00");
+
+        const tester = userEvent.setup();
+        await tester.click(
+            screen.getByRole("button", { name: "This is me" })
+        );
+        await tester.click(
+            screen.getByRole("button", { name: "This is me" })
+        );
+        await tester.click(
+            screen.getByRole("button", { name: "This is me" })
+        );
+        await tester.click(
+            screen.getByRole("button", { name: "Use this for today" })
+        );
+
+        await applyDemoDay(0, "09:00");
+        expect(
+            screen.queryByRole("heading", {
+                name: "How are you arriving today?",
+            })
+        ).not.toBeInTheDocument();
+        expect(screen.getByText("Daily check-in")).toBeInTheDocument();
+
+        await applyDemoDay(1, "09:00");
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+        expect(screen.getByText("Today feels Calm.")).toBeInTheDocument();
+    });
+
+    it("shows a relevant nudge after a simulated time and day jump", async () => {
+        const plan = makePlan(7);
+        seedDemoDayArrivals(plan);
+
+        renderWorld(plan, {}, { preferences: nudgePreferences });
+
+        await applyDemoDay(2, "20:00");
+
+        await waitFor(() =>
+            expect(
+                screen.getByText("A movement moment is here")
+            ).toBeInTheDocument()
+        );
+
+        const banner = screen
+            .getByText("A movement moment is here")
+            .closest("article");
+
+        expect(banner).toHaveAttribute(
+            "data-nudge-date",
+            plan.days[2].date
+        );
+        expect(banner).toHaveAttribute(
+            "data-nudge-day-id",
+            plan.days[2].id
+        );
+    });
+
+    it("keeps a nudge while its activity is planned and clears it after completion", async () => {
+        const plan = makePlan(7);
+        seedDemoDayArrivals(plan);
+        setDemoClock("19:30", plan.days[0].date);
+
+        const { onJourneyChange } = renderWorld(
+            plan,
+            {},
+            { preferences: nudgePreferences }
+        );
+
+        expect(screen.getByText("The valley is open")).toBeInTheDocument();
+
+        const tester = userEvent.setup();
+        await tester.click(
+            screen.getByRole("button", { name: /I did it/i })
+        );
+
+        expect(
+            screen.queryByText("The valley is open")
+        ).not.toBeInTheDocument();
+
+        await tester.click(screen.getByRole("button", { name: "Cancel" }));
+
+        expect(onJourneyChange).not.toHaveBeenCalled();
+        expect(plan.days[0].primary.status).toBe("planned");
+        expect(screen.getByText("The valley is open")).toBeInTheDocument();
+
+        await tester.click(
+            screen.getByRole("button", { name: /I did it/i })
+        );
+        await tester.click(
+            screen.getByRole("button", { name: /Save this step/i })
+        );
+
+        await waitFor(() =>
+            expect(onJourneyChange).toHaveBeenCalled()
+        );
+        await waitFor(() =>
+            expect(
+                screen.queryByText("The valley is open")
+            ).not.toBeInTheDocument()
+        );
+    });
+
+    it("does not carry mood or nudge state across simulated days", async () => {
+        const plan = makePlan(7);
+        const firstDate = plan.days[0].date;
+        const secondDate = plan.days[2].date;
+
+        saveMoodEntry(
+            user.user_id,
+            "hopeful",
+            new Date(`${firstDate}T09:00:00`)
+        );
+        saveArrivalEntry(
+            user.user_id,
+            { mood: "hopeful", date: firstDate },
+            new Date(`${firstDate}T09:00:00`)
+        );
+        setDemoClock("19:30", firstDate);
+
+        renderWorld(plan, {}, { preferences: nudgePreferences });
+
+        const firstBanner = screen
+            .getByText("The valley is open")
+            .closest("article");
+        expect(firstBanner).toHaveAttribute("data-nudge-date", firstDate);
+
+        await applyDemoDay(2, "19:30");
+
+        expect(
+            screen.getByRole("heading", {
+                name: "How are you arriving today?",
+            })
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByText("Today feels Hopeful.")
+        ).not.toBeInTheDocument();
+
+        const tester = userEvent.setup();
+        await tester.click(
+            screen.getByRole("button", {
+                name: "Keep my usual step",
+            })
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.getByText("The valley is open")
+            ).toBeInTheDocument()
+        );
+
+        const secondBanner = screen
+            .getByText("The valley is open")
+            .closest("article");
+        expect(secondBanner).toHaveAttribute("data-nudge-date", secondDate);
+        expect(secondBanner).toHaveAttribute(
+            "data-nudge-day-id",
+            plan.days[2].id
+        );
+        expect(getMoodEntry(user.user_id, firstDate)?.mood).toBe("hopeful");
+        expect(getMoodEntry(user.user_id, secondDate)).toBeNull();
     });
 });
 

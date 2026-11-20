@@ -111,6 +111,10 @@ export function isDemoClockEnabled() {
     return getDemoClock() !== null;
 }
 
+export function getDemoDateKey() {
+    return getDemoClock()?.date ?? null;
+}
+
 export function setDemoClock(value, date) {
     if (value === null || value === undefined) {
         return clearDemoClock();

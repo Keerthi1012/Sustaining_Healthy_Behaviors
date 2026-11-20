@@ -934,7 +934,9 @@ export function completeSlot(plan, dayId, slot, feedback, options = {}) {
     const shouldPause = safety !== "none";
     const useBackendProgression =
         options.useBackendProgression ?? isBackendProgressionEnabled();
-    const at = new Date().toISOString();
+    const at = options.now
+        ? new Date(options.now).toISOString()
+        : new Date().toISOString();
     const sourceEntry =
         plan.days.find((day) => day.id === dayId)?.[slot] ?? null;
     const backendManaged =
@@ -1403,10 +1405,16 @@ export function getPlannedEntries(plan) {
         .filter(Boolean);
 }
 
+export function isDayCountedForProgress(day) {
+    const resolved = isDayResolved(day);
+    const rested = day?.primary?.status === "rested" || (day?.secondary?.status === "rested");
+    return resolved && !rested;
+}
+
 export function getPlanProgress(plan) {
     const days = plan?.days ?? [];
     const total = days.length;
-    const resolved = days.filter((day) => isDayResolved(day)).length;
+    const resolved = days.filter((day) => isDayCountedForProgress(day)).length;
 
     return {
         resolved,

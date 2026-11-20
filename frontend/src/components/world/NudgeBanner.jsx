@@ -11,6 +11,8 @@ function NudgeBanner({ nudge, onOpen, onSnooze }) {
             className={`nudge-banner nudge-banner--${nudge.intensity}`}
             role="status"
             aria-live="polite"
+            data-nudge-day-id={nudge.moment?.dayId}
+            data-nudge-date={nudge.moment?.date}
         >
             <span className="nudge-banner__icon" aria-hidden="true">
                 <Bell size={18} />

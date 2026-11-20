@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 
 from pydantic import (
@@ -79,6 +80,7 @@ class CompletionRequest(BaseModel):
     slot: Literal["primary", "secondary"]
     expected_revision: int = Field(ge=0)
     feedback: CompletionFeedback
+    simulated_at: datetime | None = None
 
 
 class CompletionResponse(JourneyResponse):

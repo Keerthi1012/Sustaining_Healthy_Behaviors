@@ -186,6 +186,25 @@ describe("planEngine", () => {
         expect(next).toBe(completed);
     });
 
+    it("stamps a simulated completion timestamp when provided", () => {
+        const plan = buildPlan(movementProfile, startDate);
+        const now = "2026-01-07T19:30:00.000Z";
+
+        const next = completeSlot(
+            plan,
+            plan.days[0].id,
+            "primary",
+            {
+                difficulty: "easy",
+                barrier: "Nothing in particular",
+                safety: "none",
+            },
+            { now }
+        );
+
+        expect(next.days[0].primary.completedAt).toBe(now);
+    });
+
     it("builds a sleep-first plan from the sleep challenge answer", () => {
         const sleepProfile = {
             primaryGoalId: "sleep",

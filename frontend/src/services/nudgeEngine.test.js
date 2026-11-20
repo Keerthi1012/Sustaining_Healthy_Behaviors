@@ -107,6 +107,28 @@ describe("open moment discovery", () => {
         ]);
     });
 
+    it("can scope open moments to a supplied date key", () => {
+        const plan = makePlan();
+        plan.days.push({
+            id: "day-2",
+            date: "2026-01-06",
+            primary: entry("nutrition"),
+            secondary: null,
+        });
+
+        expect(
+            getOpenMoments(plan, at(12, 0), "2026-01-06")
+        ).toEqual([
+            {
+                domain: "nutrition",
+                dayId: "day-2",
+                slot: "primary",
+                slotIndex: 0,
+                date: "2026-01-06",
+            },
+        ]);
+    });
+
     it("ignores resolved slots", () => {
         const plan = makePlan({
             movement: "completed",
@@ -183,6 +205,33 @@ describe("nudge decisions", () => {
         expect(result.window).toEqual({
             start: "19:00",
             end: "21:00",
+        });
+    });
+
+    it("scopes a decision to the supplied date key", () => {
+        const plan = makePlan({
+            movement: "completed",
+            sleep: "completed",
+        });
+        plan.days.push({
+            id: "day-2",
+            date: "2026-01-06",
+            primary: entry("movement"),
+            secondary: null,
+        });
+
+        const result = decide({
+            plan,
+            dateKey: "2026-01-06",
+        });
+
+        expect(result).toMatchObject({
+            show: true,
+            domain: "movement",
+            moment: {
+                dayId: "day-2",
+                date: "2026-01-06",
+            },
         });
     });
 

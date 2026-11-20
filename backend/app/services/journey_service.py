@@ -1,6 +1,6 @@
 import copy
 import math
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from uuid import uuid4
 
 from app.models.common import (
@@ -51,14 +51,24 @@ class JourneySlotResolvedError(Exception):
     pass
 
 
+class JourneySimulationNotAllowedError(Exception):
+    pass
+
+
+class JourneySimulationMismatchError(Exception):
+    pass
+
+
 class JourneyService:
     def __init__(
         self,
         database: SqliteDatabase,
         habit_repository: HabitRepository,
+        demo_mode: bool = False,
     ):
         self._database = database
         self._habits = habit_repository
+        self._demo_mode = bool(demo_mode)
 
     def get(self, user_id: str) -> JourneyRecord | None:
         return SqliteJourneyRepository(self._database).get(user_id)
@@ -122,6 +132,11 @@ class JourneyService:
             )
 
             if cached is not None:
+                if (
+                    request.simulated_at is not None
+                    and not self._demo_mode
+                ):
+                    raise JourneySimulationNotAllowedError()
                 return cached
 
             record = journeys.get(user_id)
@@ -148,11 +163,12 @@ class JourneyService:
             if day is None or not isinstance(day.get(request.slot), dict):
                 raise JourneySlotNotFoundError(request.day_id)
 
+            now = self._resolve_completion_time(request, day)
+
             entry = day[request.slot]
             if entry.get("status") != "planned":
                 raise JourneySlotResolvedError()
 
-            now = datetime.now(timezone.utc)
             now_iso = now.isoformat()
             safe = request.feedback.safety == "none"
 
@@ -205,6 +221,35 @@ class JourneyService:
             )
 
             return response
+
+    def _resolve_completion_time(
+        self,
+        request: CompletionRequest,
+        day: dict,
+    ) -> datetime:
+        if request.simulated_at is None:
+            return datetime.now(timezone.utc)
+
+        if not self._demo_mode:
+            raise JourneySimulationNotAllowedError()
+
+        simulated = request.simulated_at
+        if simulated.tzinfo is None:
+            simulated = simulated.replace(tzinfo=timezone.utc)
+
+        day_date = day.get("date")
+        if not isinstance(day_date, str):
+            raise JourneySimulationMismatchError()
+
+        try:
+            planned_date = date.fromisoformat(day_date[:10])
+        except ValueError as exc:
+            raise JourneySimulationMismatchError() from exc
+
+        if simulated.date() != planned_date:
+            raise JourneySimulationMismatchError()
+
+        return simulated
 
     def _update_progression(
         self,
